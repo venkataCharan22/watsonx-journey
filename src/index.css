@@ -1,0 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+:root {
+  /* IBM watsonx light palette */
+  --bg-0: #fbfcff;
+  --bg-1: #eef3fb;
+  --grid: rgba(15, 98, 254, 0.06);
+
+  --ink-0: #0b1220; /* primary text */
+  --ink-1: #3f4a5c; /* secondary text */
+  --ink-2: #6b7689; /* tertiary text */
+
+  --amber: #ff832b;
+  --amber-soft: #ffae57;
+  --violet: #8a3ffc;
+  --blue: #0f62fe;
+  --cyan: #3a8bff;
+  --green: #1faa6b;
+
+  color-scheme: light;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-0);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  color: var(--ink-0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.font-sans {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+/* ---------- Cards (light, soft depth) ---------- */
+.card {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  border: 1px solid rgba(15, 98, 254, 0.1);
+  border-radius: 18px;
+  box-shadow:
+    0 1px 2px rgba(11, 18, 32, 0.04),
+    0 12px 40px rgba(15, 98, 254, 0.08);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(15, 98, 254, 0.06);
+  border: 1px solid rgba(15, 98, 254, 0.16);
+  color: var(--ink-1);
+}
+
+/* ---------- Loading screen ---------- */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(120% 80% at 50% 0%, #ffffff 0%, var(--bg-1) 70%, #e7eefa 100%);
+}
+
+.loading-bar-track {
+  width: 320px;
+  max-width: 70vw;
+  height: 4px;
+  background: rgba(15, 98, 254, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 28px;
+}
+
+.loading-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--amber), var(--violet) 40%, var(--cyan) 72%, var(--green));
+  transition: width 0.25s ease;
+}
+
+/* ---------- Controls ---------- */
+.ctl-btn {
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.25s ease;
+  border: 1px solid rgba(15, 98, 254, 0.2);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  color: var(--ink-1);
+}
+
+.ctl-btn:hover {
+  background: #ffffff;
+  border-color: rgba(15, 98, 254, 0.4);
+  color: var(--blue);
+  box-shadow: 0 6px 20px rgba(15, 98, 254, 0.14);
+}
+
+.ctl-btn:active {
+  transform: scale(0.97);
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  border: 1.5px solid rgba(11, 18, 32, 0.25);
+  background: transparent;
+}
+
+.dot.active {
+  background: currentColor;
+  border-color: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 18%, transparent);
+  transform: scale(1.25);
+}
+
+/* CTA pill (Begin) */
+.cta {
+  padding: 14px 34px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--blue), var(--violet));
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 10px 34px rgba(15, 98, 254, 0.32);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 42px rgba(15, 98, 254, 0.4);
+}
+
+/* gradient text */
+.grad-text {
+  background: linear-gradient(100deg, var(--amber) 0%, var(--violet) 38%, var(--cyan) 68%, var(--green) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* QR placeholder */
+.qr-box {
+  width: 132px;
+  height: 132px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(15, 98, 254, 0.14);
+  box-shadow: 0 10px 30px rgba(15, 98, 254, 0.12);
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+
+/* subtle pulse used for hints */
+@keyframes softpulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+.soft-pulse {
+  animation: softpulse 3s ease-in-out infinite;
+}
