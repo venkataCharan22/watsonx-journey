@@ -187,7 +187,11 @@ function EndCard({ progress }) {
 
       <div style={{ display: 'flex', gap: 22, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
         <div className="qr-box">
-          <QrPlaceholder />
+          <img
+            src={`${import.meta.env.BASE_URL}qr.png`}
+            alt="Scan to open the experience"
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
         </div>
         <div style={{ textAlign: 'left' }}>
           <p className="grad-text" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.01em' }}>decide. migrate. modernize.</p>
@@ -201,31 +205,6 @@ function EndCard({ progress }) {
         </div>
       </motion.div>
     </CenterStage>
-  )
-}
-
-function QrPlaceholder() {
-  // deterministic faux-QR grid; swap for a real QR image before the expo
-  const n = 11
-  const cells = []
-  let seed = 7
-  const rnd = () => {
-    seed = (seed * 1103515245 + 12345) & 0x7fffffff
-    return seed / 0x7fffffff
-  }
-  for (let y = 0; y < n; y++) {
-    for (let x = 0; x < n; x++) {
-      const finder = (x < 3 && y < 3) || (x > n - 4 && y < 3) || (x < 3 && y > n - 4)
-      const on = finder || rnd() > 0.5
-      cells.push(on)
-    }
-  }
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${n}, 1fr)`, gap: 1, width: '100%', height: '100%' }}>
-      {cells.map((on, i) => (
-        <div key={i} style={{ background: on ? '#0b1220' : 'transparent', borderRadius: 1 }} />
-      ))}
-    </div>
   )
 }
 

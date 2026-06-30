@@ -35,6 +35,7 @@ export default function FlowGraph() {
   const dotRefs = useRef([])
   const dotMat = useRef([])
   const agent = useRef()
+  const gear = useRef()
   const agentMat = useRef([])
   const accent = useMemo(() => new THREE.Color(), [])
   const v = useMemo(() => ({ a: new THREE.Vector3(), b: new THREE.Vector3(), d: new THREE.Vector3(), q: new THREE.Quaternion() }), [])
@@ -87,8 +88,8 @@ export default function FlowGraph() {
     }
 
     // Migration Agent gear core — present in migrate, recedes into modern.
+    if (gear.current) gear.current.rotation.z = e * 0.5
     if (agent.current) {
-      agent.current.rotation.z = e * 0.5
       const present = smoothstep(0.5, 0.56, p) * (1 - smoothstep(0.72, 0.82, p))
       agent.current.scale.setScalar(lerp(0.0, 1, present))
       agentMat.current.forEach((mm) => mm && (mm.opacity = present))
@@ -101,30 +102,32 @@ export default function FlowGraph() {
         {/* Migration Agent — a cyan "gear" core above the graph. */}
         <group ref={agent} position={[0, 3.6, -0.5]}>
           <pointLight color="#0f62fe" intensity={4} distance={12} />
-          <mesh>
-            <torusGeometry args={[0.62, 0.16, 10, 8]} />
-            <meshStandardMaterial
-              ref={(r) => (agentMat.current[0] = r)}
-              color="#0f62fe"
-              emissive="#0f62fe"
-              emissiveIntensity={0.9}
-              roughness={0.3}
-              metalness={0.4}
-              transparent
-              toneMapped={false}
-            />
-          </mesh>
-          <mesh>
-            <icosahedronGeometry args={[0.32, 0]} />
-            <meshStandardMaterial
-              ref={(r) => (agentMat.current[1] = r)}
-              color="#7fb0ff"
-              emissive="#3a8bff"
-              emissiveIntensity={1}
-              transparent
-              toneMapped={false}
-            />
-          </mesh>
+          <group ref={gear}>
+            <mesh>
+              <torusGeometry args={[0.62, 0.16, 10, 8]} />
+              <meshStandardMaterial
+                ref={(r) => (agentMat.current[0] = r)}
+                color="#0f62fe"
+                emissive="#0f62fe"
+                emissiveIntensity={0.9}
+                roughness={0.3}
+                metalness={0.4}
+                transparent
+                toneMapped={false}
+              />
+            </mesh>
+            <mesh>
+              <icosahedronGeometry args={[0.32, 0]} />
+              <meshStandardMaterial
+                ref={(r) => (agentMat.current[1] = r)}
+                color="#7fb0ff"
+                emissive="#3a8bff"
+                emissiveIntensity={1}
+                transparent
+                toneMapped={false}
+              />
+            </mesh>
+          </group>
           <Text
             position={[0, 1.5, 0]}
             fontSize={0.34}
