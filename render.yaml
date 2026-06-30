@@ -1,0 +1,16 @@
+# Render Blueprint — deploy this repo as a static site.
+# In the Render dashboard: New + → Blueprint → pick this repo. Render reads this
+# file, builds, and serves at https://watsonx-journey.onrender.com/
+services:
+  - type: web
+    name: watsonx-journey
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: BASE_PATH
+        value: /
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
