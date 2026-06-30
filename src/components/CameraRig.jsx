@@ -32,7 +32,7 @@ const lookPath = new THREE.CatmullRomCurve3([
 ])
 
 export default function CameraRig() {
-  const { camera } = useThree()
+  const { camera, size } = useThree()
   const pos = useRef(new THREE.Vector3(0, 3.2, 31))
   const look = useRef(new THREE.Vector3(0, 3.6, 0))
   const tPos = useRef(new THREE.Vector3())
@@ -45,6 +45,17 @@ export default function CameraRig() {
 
     camPath.getPoint(p, tPos.current)
     lookPath.getPoint(p, tLook.current)
+
+    // Portrait / phone screens: the scene is composed wide, so dolly the camera
+    // back (subject fits the narrow FOV without clipping) and drop the look
+    // target so the 3D rises above the bottom-sheet caption.
+    const aspect = size.width / Math.max(1, size.height)
+    if (aspect < 0.95) {
+      const t = Math.min(1, (0.95 - aspect) / 0.5) // 0..1, stronger as it narrows
+      const zoom = 1 + t * 0.9
+      tPos.current.sub(tLook.current).multiplyScalar(zoom).add(tLook.current)
+      tLook.current.y -= t * 3.4
+    }
 
     // Faster settle through the funnel hand-off so the push-in feels deliberate.
     const k = progress > 0.28 && progress < 0.54 ? 0.06 : 0.035

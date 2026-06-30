@@ -1,12 +1,28 @@
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore, actIndexFor } from '../store'
 import { CSS_GRADIENT, ACCENT, hexAt } from '../lib/gradient'
 
 const fade = {
   initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -12 },
-  transition: { duration: 0.5, ease: 'easeOut' },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+  // quick exit so two bottom-sheet cards don't visibly stack when jumping beats
+  exit: { opacity: 0, y: -10, transition: { duration: 0.22, ease: 'easeIn' } },
+}
+
+// true on narrow (portrait phone) screens
+function useIsMobile() {
+  const [m, setM] = useState(
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    const on = () => setM(mq.matches)
+    on()
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return m
 }
 
 const EYEBROWS = ['', 'THE PROBLEM', 'DECISION AGENT', 'MIGRATION AGENT', 'MODERNIZED']
@@ -37,12 +53,13 @@ function CenterStage({ children }) {
 function HeroCard() {
   const begin = useStore((s) => s.begin)
   const started = useStore((s) => s.started)
+  const mobile = useIsMobile()
   return (
     <CenterStage>
       <motion.div
         {...fade}
         className="card"
-        style={{ width: 'min(620px, 88vw)', padding: '38px 40px', textAlign: 'center', pointerEvents: 'auto' }}
+        style={{ width: 'min(620px, 90vw)', padding: mobile ? '26px 22px' : '38px 40px', textAlign: 'center', pointerEvents: 'auto' }}
       >
         <Eyebrow color={ACCENT.blue}>IBM watsonx · Data &amp; AI Modernization</Eyebrow>
         <h1 style={{ fontSize: 'clamp(28px, 4.4vw, 46px)', fontWeight: 600, lineHeight: 1.08, margin: '18px 0 8px', letterSpacing: '-0.02em' }}>
@@ -65,18 +82,30 @@ function HeroCard() {
 }
 
 function SideCard({ side = 'left', vpos = 'bottom', accent, eyebrow, heading, children }) {
-  const style = {
-    position: 'fixed',
-    [side]: 'clamp(20px, 4vw, 56px)',
-    [vpos]: 'clamp(96px, 14vh, 130px)',
-    width: 'min(400px, 86vw)',
-    padding: '24px 26px',
-    pointerEvents: 'none',
-  }
+  const mobile = useIsMobile()
+  // On phones, all narrative cards become a compact bottom sheet so the 3D
+  // stays visible above them; on desktop they sit to the side.
+  const style = mobile
+    ? {
+        position: 'fixed',
+        left: 10,
+        right: 10,
+        bottom: 86,
+        padding: '15px 17px',
+        pointerEvents: 'none',
+      }
+    : {
+        position: 'fixed',
+        [side]: 'clamp(20px, 4vw, 56px)',
+        [vpos]: 'clamp(96px, 14vh, 130px)',
+        width: 'min(400px, 86vw)',
+        padding: '24px 26px',
+        pointerEvents: 'none',
+      }
   return (
     <motion.div {...fade} className="card" style={style}>
       <Eyebrow color={accent}>{eyebrow}</Eyebrow>
-      <h2 style={{ fontSize: 'clamp(20px,2.6vw,27px)', fontWeight: 600, lineHeight: 1.12, margin: '14px 0 10px', letterSpacing: '-0.01em' }}>
+      <h2 style={{ fontSize: mobile ? 18 : 'clamp(20px,2.6vw,27px)', fontWeight: 600, lineHeight: 1.14, margin: mobile ? '10px 0 7px' : '14px 0 10px', letterSpacing: '-0.01em' }}>
         {heading}
       </h2>
       {children}
@@ -165,6 +194,7 @@ function MigrateCard() {
 
 function EndCard({ progress }) {
   const replay = useStore((s) => s.replay)
+  const mobile = useIsMobile()
   const reveal = progress >= 0.9
   const weeks = 6 - countUp(progress, 0.78, 0.96, 6) // 6 weeks -> 0
   return (
@@ -172,7 +202,7 @@ function EndCard({ progress }) {
       <motion.div
         {...fade}
         className="card"
-        style={{ width: 'min(640px, 90vw)', padding: '34px 38px', textAlign: 'center', pointerEvents: 'auto' }}
+        style={{ width: 'min(640px, 90vw)', padding: mobile ? '24px 22px' : '34px 38px', textAlign: 'center', pointerEvents: 'auto' }}
       >
       <Eyebrow color={ACCENT.green}>MODERNIZED</Eyebrow>
       <h2 style={{ fontSize: 'clamp(22px,3.2vw,34px)', fontWeight: 600, lineHeight: 1.1, margin: '16px 0 6px', letterSpacing: '-0.01em' }}>
