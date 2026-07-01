@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { CSS_GRADIENT, ACCENT, hexAt } from '../lib/gradient'
@@ -47,7 +47,7 @@ function placeFor(beat, mobile) {
   }
 }
 
-function OpenText({ mobile }) {
+const OpenText = memo(function OpenText({ mobile }) {
   const { style, align } = placeFor('open', mobile)
   return (
     <ConstellationText
@@ -63,11 +63,10 @@ function OpenText({ mobile }) {
       </div>
     </ConstellationText>
   )
-}
+})
 
-function ProblemText({ mobile, progress }) {
+const ProblemText = memo(function ProblemText({ mobile, count }) {
   const { style, align } = placeFor('problem', mobile)
-  const n = countUp(progress, 0.1, 0.2, 3000)
   return (
     <ConstellationText
       accent={ACCENT.amber}
@@ -77,19 +76,15 @@ function ProblemText({ mobile, progress }) {
       align={align}
       style={style}
     >
-      <Metric value={`${n.toLocaleString()}+`} label="pipelines · counted by hand" color={ACCENT.amber} align={align} />
+      <Metric value={`${count.toLocaleString()}+`} label="pipelines · counted by hand" color={ACCENT.amber} align={align} />
     </ConstellationText>
   )
-}
+})
 
-function DecideText({ mobile, progress }) {
+const DECIDE_ROWS = ['Connector parity', 'Runtime fit', 'Cost to operate', 'Lineage & governance']
+
+const DecideText = memo(function DecideText({ mobile, litMask }) {
   const { style, align } = placeFor('decide', mobile)
-  const rows = [
-    ['Connector parity', 0.33],
-    ['Runtime fit', 0.37],
-    ['Cost to operate', 0.41],
-    ['Lineage & governance', 0.45],
-  ]
   return (
     <ConstellationText
       accent={ACCENT.violet}
@@ -100,8 +95,8 @@ function DecideText({ mobile, progress }) {
       style={style}
     >
       <div style={{ marginTop: 16 }}>
-        {rows.map(([label, at]) => (
-          <ScoreRow key={label} label={label} lit={progress >= at} />
+        {DECIDE_ROWS.map((label, i) => (
+          <ScoreRow key={label} label={label} lit={(litMask & (1 << i)) !== 0} />
         ))}
         <div className="font-mono text-halo" style={{ marginTop: 12, fontSize: 14, color: ACCENT.blue }}>
           → watsonx.data StreamSets
@@ -109,9 +104,9 @@ function DecideText({ mobile, progress }) {
       </div>
     </ConstellationText>
   )
-}
+})
 
-function MigrateText({ mobile }) {
+const MigrateText = memo(function MigrateText({ mobile }) {
   const { style, align } = placeFor('migrate', mobile)
   return (
     <ConstellationText
@@ -128,11 +123,10 @@ function MigrateText({ mobile }) {
       </div>
     </ConstellationText>
   )
-}
+})
 
-function ModernText({ mobile, progress }) {
+const ModernText = memo(function ModernText({ mobile, weeks }) {
   const { style, align } = placeFor('modern', mobile)
-  const weeks = 6 - countUp(progress, 0.78, 0.96, 6)
   return (
     <ConstellationText
       accent={ACCENT.green}
@@ -147,7 +141,7 @@ function ModernText({ mobile, progress }) {
       </div>
     </ConstellationText>
   )
-}
+})
 
 function Metric({ value, label, color, align }) {
   return (
@@ -287,6 +281,13 @@ export default function Overlay() {
   const showMigrate = progress >= 0.505 && progress < 0.735
   const showModern = progress >= 0.745
 
+  // Derived display values — computed here (cheap) so the memoized text blocks
+  // only re-render when their shown value actually changes, not every frame.
+  const problemCount = countUp(progress, 0.1, 0.2, 3000)
+  const decideMask =
+    (progress >= 0.33 ? 1 : 0) | (progress >= 0.37 ? 2 : 0) | (progress >= 0.41 ? 4 : 0) | (progress >= 0.45 ? 8 : 0)
+  const modernWeeks = Math.max(0, 6 - countUp(progress, 0.78, 0.96, 6))
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, pointerEvents: 'none' }}>
       <ProgressBar progress={progress} />
@@ -294,14 +295,14 @@ export default function Overlay() {
 
       <AnimatePresence>
         {showOpen && <OpenText key="open" mobile={mobile} />}
-        {showProblem && <ProblemText key="problem" mobile={mobile} progress={progress} />}
-        {showDecide && <DecideText key="decide" mobile={mobile} progress={progress} />}
+        {showProblem && <ProblemText key="problem" mobile={mobile} count={problemCount} />}
+        {showDecide && <DecideText key="decide" mobile={mobile} litMask={decideMask} />}
         {showMigrate && <MigrateText key="migrate" mobile={mobile} />}
-        {showModern && <ModernText key="modern" mobile={mobile} progress={progress} />}
+        {showModern && <ModernText key="modern" mobile={mobile} weeks={modernWeeks} />}
       </AnimatePresence>
 
       <EndTile mobile={mobile} show={progress >= 0.9} />
-      <ConstellationRail />
+      {!mobile && <ConstellationRail />}
       <ScrollCue show={progress < 0.05} />
     </div>
   )

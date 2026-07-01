@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+import { isMobile, reducedMotion } from '../lib/device'
 
 // Container staggers its glyph children in (condense) and out (evaporate).
 const container = {
@@ -119,8 +120,10 @@ export default function ConstellationText({
   caption,
   align = 'left',
   style,
-  simple = false,
-  sparkles = true,
+  // Lighter on phones / reduced-motion: opacity-only glyphs, no twinkle, no
+  // sparkle canvas — keeps scroll buttery on mobile GPUs.
+  simple = isMobile || reducedMotion,
+  sparkles = !isMobile && !reducedMotion,
   children,
 }) {
   return (

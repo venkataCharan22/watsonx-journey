@@ -10,6 +10,7 @@ import FlowGraph from './beats/FlowGraph'
 import ModernFlow from './beats/ModernFlow'
 import { useStore } from '../store'
 import { gradientColorAt } from '../lib/gradient'
+import { isMobile } from '../lib/device'
 
 // A single accent point light that takes on the active beat's hue and spills
 // premium color onto the white scene.
@@ -50,7 +51,7 @@ export default function Scene() {
   return (
     <Canvas
       camera={{ fov: 58, near: 0.1, far: 220, position: [0, 3.2, 31] }}
-      dpr={[1, 2]}
+      dpr={isMobile ? [1, 1.5] : [1, 2]}
       gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping

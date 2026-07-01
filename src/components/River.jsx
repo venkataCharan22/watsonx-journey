@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useStore } from '../store'
 import { gradientColorAt } from '../lib/gradient'
+import { isMobile } from '../lib/device'
 import {
   RIVER_TOP,
   RIVER_BOTTOM,
@@ -12,7 +13,7 @@ import {
   channelBrightnessAt,
 } from '../lib/scene-params'
 
-const COUNT = 4200
+const COUNT = isMobile ? 2400 : 4200
 const SPAN = RIVER_TOP - RIVER_BOTTOM
 
 // Soft round sprite so particles read as luminous droplets, not hard squares.
@@ -79,7 +80,8 @@ export default function River() {
 
     const { positions, colors, phase, base, channel, wPhase, wFreq } = data
     const wob = wobbleAt(p)
-    const updateColor = frame.current % 2 === 0
+    // update colours less often on mobile (every 3rd frame vs 2nd)
+    const updateColor = frame.current % (isMobile ? 3 : 2) === 0
     frame.current++
 
     const time = flow.current

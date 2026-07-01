@@ -60,16 +60,32 @@ export default function App() {
   // Drive the journey from scroll position.
   useEffect(() => {
     const setScroll = useStore.getState().setScroll
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight
-      setScroll(max > 0 ? window.scrollY / max : 0)
+    // Cache the scroll range — reading scrollHeight forces layout, so we only
+    // recompute it on resize/orientation change, never on every scroll event.
+    let max = 1
+    const recompute = () => {
+      max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
+      setScroll(window.scrollY / max)
     }
+    // rAF-throttle scroll so we update progress at most once per frame.
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        setScroll(window.scrollY / max)
+        ticking = false
+      })
+    }
+    const onOrient = () => setTimeout(recompute, 200)
+    recompute()
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    onScroll()
+    window.addEventListener('resize', recompute)
+    window.addEventListener('orientationchange', onOrient)
     return () => {
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
+      window.removeEventListener('resize', recompute)
+      window.removeEventListener('orientationchange', onOrient)
     }
   }, [])
 
