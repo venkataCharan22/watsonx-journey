@@ -13,7 +13,7 @@ import {
   channelBrightnessAt,
 } from '../lib/scene-params'
 
-const COUNT = isMobile ? 2400 : 4200
+const COUNT = isMobile ? 1600 : 4200
 const SPAN = RIVER_TOP - RIVER_BOTTOM
 
 // Soft round sprite so particles read as luminous droplets, not hard squares.
@@ -116,25 +116,28 @@ export default function River() {
 
   return (
     <group>
-      {/* Soft additive halo behind the cores — gives the river its glow on white. */}
-      <points geometry={geometry}>
-        <pointsMaterial
-          map={sprite}
-          size={1.05}
-          vertexColors
-          transparent
-          opacity={0.28}
-          sizeAttenuation
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          toneMapped={false}
-        />
-      </points>
+      {/* Soft additive halo behind the cores — gives the river its glow on white.
+          Skipped on mobile: big additive sprites are the #1 fill-rate cost. */}
+      {!isMobile && (
+        <points geometry={geometry}>
+          <pointsMaterial
+            map={sprite}
+            size={1.05}
+            vertexColors
+            transparent
+            opacity={0.28}
+            sizeAttenuation
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </points>
+      )}
       {/* Crisp cores — true color, normal blending so white stays white. */}
       <points geometry={geometry}>
         <pointsMaterial
           map={sprite}
-          size={0.42}
+          size={isMobile ? 0.5 : 0.42}
           vertexColors
           transparent
           opacity={0.95}

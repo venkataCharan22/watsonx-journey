@@ -51,7 +51,7 @@ export default function Scene() {
   return (
     <Canvas
       camera={{ fov: 58, near: 0.1, far: 220, position: [0, 3.2, 31] }}
-      dpr={isMobile ? [1, 1.5] : [1, 2]}
+      dpr={isMobile ? 1 : [1, 2]}
       gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping

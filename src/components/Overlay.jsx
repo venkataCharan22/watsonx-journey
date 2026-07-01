@@ -27,8 +27,10 @@ function countUp(progress, a, b, max) {
 // subject. On mobile everything drops to a lower band the portrait camera clears.
 function placeFor(beat, mobile) {
   if (mobile) {
+    // Modern beat sits at the TOP so it clears the QR tile docked at the bottom.
+    if (beat === 'modern') return { style: { left: 16, right: 16, top: '9%' }, align: 'center' }
     const base = { left: 18, right: 18, bottom: '17vh', maxWidth: 'none' }
-    const center = beat === 'open' || beat === 'modern'
+    const center = beat === 'open'
     return { style: base, align: center ? 'center' : 'left' }
   }
   switch (beat) {
@@ -190,36 +192,37 @@ function EndTile({ mobile, show }) {
   return (
     <AnimatePresence>
       {show && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.6 }}
-          style={{
-            position: 'fixed',
-            bottom: mobile ? '7vh' : '12vh',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 20,
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            pointerEvents: 'auto',
-            zIndex: 55,
-          }}
-        >
-          <div className="qr-box">
-            <img src={`${import.meta.env.BASE_URL}qr.png`} alt="Scan to open the experience" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          </div>
-          <div style={{ textAlign: 'left' }}>
-            <p className="grad-text" style={{ fontSize: 23, fontWeight: 700, letterSpacing: '-0.01em' }}>decide. migrate. modernize.</p>
-            <p className="text-halo" style={{ color: 'var(--ink-2)', fontSize: 13, margin: '6px 0 12px' }}>Scan to explore the project.</p>
-            <button className="font-mono soft-pulse" onClick={backToTop} style={{ background: 'none', border: 'none', cursor: 'pointer', color: ACCENT.blue, fontSize: 12, letterSpacing: '0.12em', padding: 0 }}>
-              ↑ BACK TO THE SOURCE
-            </button>
-          </div>
-        </motion.div>
+        // Outer wrapper centers horizontally (framer animates the inner transform,
+        // so centering can't live on the animated element).
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: mobile ? '6vh' : '12vh', display: 'flex', justifyContent: 'center', zIndex: 55, pointerEvents: 'none' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.6 }}
+            style={{
+              display: 'flex',
+              flexDirection: mobile ? 'column' : 'row',
+              alignItems: 'center',
+              gap: mobile ? 14 : 20,
+              justifyContent: 'center',
+              textAlign: mobile ? 'center' : 'left',
+              pointerEvents: 'auto',
+              padding: '0 16px',
+            }}
+          >
+            <div className="qr-box">
+              <img src={`${import.meta.env.BASE_URL}qr.png`} alt="Scan to open the experience" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <div style={{ textAlign: mobile ? 'center' : 'left' }}>
+              <p className="grad-text" style={{ fontSize: mobile ? 20 : 23, fontWeight: 700, letterSpacing: '-0.01em' }}>decide. migrate. modernize.</p>
+              <p className="text-halo" style={{ color: 'var(--ink-2)', fontSize: 13, margin: '6px 0 12px' }}>Scan to explore the project.</p>
+              <button className="font-mono soft-pulse" onClick={backToTop} style={{ background: 'none', border: 'none', cursor: 'pointer', color: ACCENT.blue, fontSize: 12, letterSpacing: '0.12em', padding: 0 }}>
+                ↑ BACK TO THE SOURCE
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </AnimatePresence>
   )
