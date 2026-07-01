@@ -11,11 +11,11 @@ const GREEN = new THREE.Color('#1faa6b')
 
 // Source -> Transform -> Join -> Mask -> Target, with one branch edge.
 const NODES = [
-  { label: 'Source', messy: [-4.2, 2.6], clean: [-5.4, -0.2] },
-  { label: 'Transform', messy: [1.6, 2.3], clean: [-2.7, 1.1] },
-  { label: 'Join', messy: [-3.0, -2.3], clean: [0, -0.7] },
-  { label: 'Mask', messy: [3.9, -1.7], clean: [2.7, 1.0] },
-  { label: 'Target', messy: [0.4, 0.5], clean: [5.4, -0.1] },
+  { label: 'Source', messy: [-4.2, 2.6], clean: [-5.4, -0.4] },
+  { label: 'Transform', messy: [1.6, 2.3], clean: [-2.7, 1.4] },
+  { label: 'Join', messy: [-3.0, -2.3], clean: [0, -1.1] },
+  { label: 'Mask', messy: [3.9, -1.7], clean: [2.7, 1.4] },
+  { label: 'Target', messy: [0.4, 0.5], clean: [5.4, -1.0] },
 ]
 const EDGES = [
   [0, 1],
