@@ -31,13 +31,19 @@ html,
 body,
 #root {
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  overflow-x: hidden;
   background: var(--bg-0);
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
   color: var(--ink-0);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* let the scroll spacer drive vertical scroll */
+html {
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .font-mono {
@@ -199,4 +205,111 @@ body,
 }
 .soft-pulse {
   animation: softpulse 3s ease-in-out infinite;
+}
+
+/* ---------- Constellation text system ---------- */
+body {
+  overscroll-behavior-y: none; /* kill rubber-band jitter that fights the scrub */
+}
+
+/* The legibility key on a LIGHT bg: DARK ink + a glyph-shaped WHITE halo that
+   lifts the type off the busy river. Never glow (glow washes out on white). */
+.text-halo {
+  text-shadow:
+    0 0 14px rgba(255, 255, 255, 0.95),
+    0 0 28px rgba(255, 255, 255, 0.75),
+    0 1px 1px rgba(11, 18, 32, 0.06);
+}
+
+/* A frost "breath" that exists ONLY behind the words and feathers to nothing —
+   no rectangle. Falls back to a soft white radial where backdrop-filter is
+   unsupported. */
+.frost-breath {
+  position: absolute;
+  inset: -18% -8%;
+  z-index: -1;
+  border-radius: 40px;
+  background: radial-gradient(120% 90% at 50% 50%, rgba(255, 255, 255, 0.72) 30%, rgba(255, 255, 255, 0) 76%);
+  pointer-events: none;
+}
+@supports (backdrop-filter: blur(1px)) {
+  .frost-breath {
+    background: radial-gradient(120% 90% at 50% 50%, rgba(255, 255, 255, 0.5) 32%, rgba(255, 255, 255, 0) 78%);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    -webkit-mask-image: radial-gradient(120% 90% at 50% 50%, #000 35%, transparent 78%);
+    mask-image: radial-gradient(120% 90% at 50% 50%, #000 35%, transparent 78%);
+  }
+}
+
+/* occasional glyph "catches the light" */
+@keyframes glyphTwinkle {
+  0%, 100% {
+    text-shadow:
+      0 0 14px rgba(255, 255, 255, 0.95),
+      0 0 28px rgba(255, 255, 255, 0.75),
+      0 1px 1px rgba(11, 18, 32, 0.06);
+  }
+  50% {
+    text-shadow:
+      0 0 14px rgba(255, 255, 255, 0.98),
+      0 0 22px var(--twinkle, rgba(15, 98, 254, 0.5)),
+      0 1px 1px rgba(11, 18, 32, 0.06);
+  }
+}
+.twinkle {
+  animation: glyphTwinkle 4s ease-in-out infinite;
+}
+
+/* constellation label leader line */
+.leader-line {
+  display: inline-block;
+  height: 0;
+  border-top: 1px solid currentColor;
+  vertical-align: middle;
+  margin-right: 10px;
+  opacity: 0.7;
+}
+
+/* right-edge constellation rail */
+.rail-track {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+  background: rgba(15, 98, 254, 0.12);
+}
+.star-node {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(11, 18, 32, 0.22);
+  background: var(--bg-0);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, background 0.24s ease, border-color 0.24s ease;
+}
+.star-node.lit {
+  transform: scale(1.4);
+  border-color: currentColor;
+  background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 16%, transparent), 0 0 10px color-mix(in srgb, currentColor 60%, transparent);
+}
+
+@media (max-width: 640px) {
+  .rail-desktop {
+    display: none;
+  }
+}
+
+/* scroll cue bob */
+@keyframes cueBob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 6px); }
+}
+.cue-bob {
+  animation: cueBob 1.8s ease-in-out infinite;
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Scene from './components/Scene'
 import Overlay from './components/Overlay'
+import { useStore, SCROLL_SCREENS } from './store'
 import { CSS_GRADIENT, ACCENT } from './lib/gradient'
 
 function LoadingScreen({ onComplete }) {
@@ -56,16 +57,36 @@ export default function App() {
     return () => clearTimeout(t)
   }, [])
 
+  // Drive the journey from scroll position.
+  useEffect(() => {
+    const setScroll = useStore.getState().setScroll
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      setScroll(max > 0 ? window.scrollY / max : 0)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    onScroll()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+
   return (
     <>
       <AnimatePresence>{!loaded && <LoadingScreen onComplete={() => setLoaded(true)} />}</AnimatePresence>
 
+      {/* Fixed cinematic layer */}
       {showScene && (
-        <div style={{ position: 'fixed', inset: 0, opacity: loaded ? 1 : 0, transition: 'opacity 0.9s ease' }}>
+        <div style={{ position: 'fixed', inset: 0, opacity: loaded ? 1 : 0, transition: 'opacity 0.9s ease', zIndex: 1 }}>
           <Scene />
           <Overlay />
         </div>
       )}
+
+      {/* Tall invisible spacer that creates the scroll range driving the journey */}
+      <div aria-hidden style={{ height: `${SCROLL_SCREENS * 100}svh`, pointerEvents: 'none' }} />
 
       {/* thin gradient hairline at the very top — ties back to the IBM poster */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: CSS_GRADIENT, zIndex: 70, pointerEvents: 'none' }} />

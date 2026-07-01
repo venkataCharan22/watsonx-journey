@@ -39,9 +39,10 @@ export default function CameraRig() {
   const tLook = useRef(new THREE.Vector3())
 
   useFrame((_, delta) => {
-    const { tick, progress } = useStore.getState()
-    tick(delta)
-    const p = Math.min(0.9999, useStore.getState().progress)
+    const { damp } = useStore.getState()
+    damp(delta)
+    const progress = useStore.getState().progress
+    const p = Math.min(0.9999, progress)
 
     camPath.getPoint(p, tPos.current)
     lookPath.getPoint(p, tLook.current)

@@ -10,6 +10,13 @@ export function smoothstep(edge0, edge1, x) {
   return t * t * (3 - 2 * t)
 }
 
+// Ken Perlin's smootherstep — zero 1st & 2nd derivative at the ends. Used to
+// ease motion within each scroll segment so beats feel "magnetic".
+export function smootherstep(edge0, edge1, x) {
+  const t = clamp01((x - edge0) / (edge1 - edge0 || 1))
+  return t * t * t * (t * (6 * t - 15) + 10)
+}
+
 export function lerp(a, b, t) {
   return a + (b - a) * t
 }

@@ -56,7 +56,7 @@ export default function Scene() {
         gl.toneMapping = THREE.ACESFilmicToneMapping
         gl.toneMappingExposure = 1.0
       }}
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: '100%', height: '100%', touchAction: 'pan-y' }}
     >
       <color attach="background" args={['#fbfcff']} />
       <SceneContent />

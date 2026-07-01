@@ -1,20 +1,12 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useStore, actIndexFor } from '../store'
+import { useStore } from '../store'
 import { CSS_GRADIENT, ACCENT, hexAt } from '../lib/gradient'
+import ConstellationText from './ConstellationText'
+import ConstellationRail from './ConstellationRail'
 
-const fade = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
-  // quick exit so two bottom-sheet cards don't visibly stack when jumping beats
-  exit: { opacity: 0, y: -10, transition: { duration: 0.22, ease: 'easeIn' } },
-}
-
-// true on narrow (portrait phone) screens
 function useIsMobile() {
-  const [m, setM] = useState(
-    typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false,
-  )
+  const [m, setM] = useState(typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false)
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)')
     const on = () => setM(mq.matches)
@@ -25,131 +17,73 @@ function useIsMobile() {
   return m
 }
 
-const EYEBROWS = ['', 'THE PROBLEM', 'DECISION AGENT', 'MIGRATION AGENT', 'MODERNIZED']
-
-function Eyebrow({ children, color }) {
-  return (
-    <div className="chip font-mono" style={{ color, borderColor: color + '40', background: color + '12' }}>
-      <span style={{ width: 6, height: 6, borderRadius: 999, background: color, display: 'inline-block' }} />
-      {children}
-    </div>
-  )
-}
-
 // progress-tied count so scrubbing stays consistent
 function countUp(progress, a, b, max) {
   const t = Math.min(1, Math.max(0, (progress - a) / (b - a)))
   return Math.round(t * max)
 }
 
-function CenterStage({ children }) {
+// Per-beat placement — text always lands in the empty quadrant opposite the 3D
+// subject. On mobile everything drops to a lower band the portrait camera clears.
+function placeFor(beat, mobile) {
+  if (mobile) {
+    const base = { left: 18, right: 18, bottom: '17vh', maxWidth: 'none' }
+    const center = beat === 'open' || beat === 'modern'
+    return { style: base, align: center ? 'center' : 'left' }
+  }
+  switch (beat) {
+    case 'open':
+      return { style: { left: '50%', top: '21%', transform: 'translateX(-50%)', width: 'min(640px,90vw)' }, align: 'center' }
+    case 'problem':
+      return { style: { right: '5vw', top: '15vh', maxWidth: 'min(440px,44vw)' }, align: 'left' }
+    case 'decide':
+      return { style: { left: '5.5vw', top: '30vh', maxWidth: 'min(440px,44vw)' }, align: 'left' }
+    case 'migrate':
+      return { style: { left: '5.5vw', top: '24vh', maxWidth: 'min(450px,44vw)' }, align: 'left' }
+    case 'modern':
+      return { style: { left: '50%', top: '16%', transform: 'translateX(-50%)', width: 'min(660px,92vw)' }, align: 'center' }
+    default:
+      return { style: {}, align: 'left' }
+  }
+}
+
+function OpenText({ mobile }) {
+  const { style, align } = placeFor('open', mobile)
   return (
-    <div style={{ position: 'fixed', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none', padding: 24 }}>
-      {children}
-    </div>
+    <ConstellationText
+      accent={ACCENT.blue}
+      eyebrow="IBM watsonx · Data & AI Modernization"
+      headline={[{ text: 'The journey of a ' }, { br: true }, { text: 'legacy pipeline', grad: true }]}
+      caption="Two AI agents that move Informatica pipelines onto IBM watsonx.data Integration."
+      align={align}
+      style={style}
+    >
+      <div className="font-mono text-halo" style={{ marginTop: 16, color: ACCENT.violet, letterSpacing: '0.12em', fontSize: 14 }}>
+        decide · migrate · modernize
+      </div>
+    </ConstellationText>
   )
 }
 
-function HeroCard() {
-  const begin = useStore((s) => s.begin)
-  const started = useStore((s) => s.started)
-  const mobile = useIsMobile()
-  return (
-    <CenterStage>
-      <motion.div
-        {...fade}
-        className="card"
-        style={{ width: 'min(620px, 90vw)', padding: mobile ? '26px 22px' : '38px 40px', textAlign: 'center', pointerEvents: 'auto' }}
-      >
-        <Eyebrow color={ACCENT.blue}>IBM watsonx · Data &amp; AI Modernization</Eyebrow>
-        <h1 style={{ fontSize: 'clamp(28px, 4.4vw, 46px)', fontWeight: 600, lineHeight: 1.08, margin: '18px 0 8px', letterSpacing: '-0.02em' }}>
-          The journey of a <span className="grad-text">legacy pipeline</span>
-        </h1>
-        <p className="font-mono" style={{ color: ACCENT.violet, letterSpacing: '0.08em', fontSize: 15, margin: '4px 0 14px' }}>
-          decide. migrate. modernize.
-        </p>
-        <p style={{ color: 'var(--ink-1)', fontSize: 'clamp(14px,1.7vw,17px)', maxWidth: 460, margin: '0 auto 26px', lineHeight: 1.5 }}>
-          Two AI agents that move Informatica pipelines onto IBM watsonx.data Integration.
-        </p>
-        {!started && (
-          <button className="cta" onClick={begin}>
-            ▶ Begin the journey
-          </button>
-        )}
-      </motion.div>
-    </CenterStage>
-  )
-}
-
-function SideCard({ side = 'left', vpos = 'bottom', accent, eyebrow, heading, children }) {
-  const mobile = useIsMobile()
-  // On phones, all narrative cards become a compact bottom sheet so the 3D
-  // stays visible above them; on desktop they sit to the side.
-  const style = mobile
-    ? {
-        position: 'fixed',
-        left: 10,
-        right: 10,
-        bottom: 86,
-        padding: '15px 17px',
-        pointerEvents: 'none',
-      }
-    : {
-        position: 'fixed',
-        [side]: 'clamp(20px, 4vw, 56px)',
-        [vpos]: 'clamp(96px, 14vh, 130px)',
-        width: 'min(400px, 86vw)',
-        padding: '24px 26px',
-        pointerEvents: 'none',
-      }
-  return (
-    <motion.div {...fade} className="card" style={style}>
-      <Eyebrow color={accent}>{eyebrow}</Eyebrow>
-      <h2 style={{ fontSize: mobile ? 18 : 'clamp(20px,2.6vw,27px)', fontWeight: 600, lineHeight: 1.14, margin: mobile ? '10px 0 7px' : '14px 0 10px', letterSpacing: '-0.01em' }}>
-        {heading}
-      </h2>
-      {children}
-    </motion.div>
-  )
-}
-
-function ProblemCard({ progress }) {
+function ProblemText({ mobile, progress }) {
+  const { style, align } = placeFor('problem', mobile)
   const n = countUp(progress, 0.1, 0.2, 3000)
   return (
-    <SideCard side="left" accent={ACCENT.amber} eyebrow="THE PROBLEM" heading="Thousands of aging Informatica pipelines.">
-      <p style={{ color: 'var(--ink-1)', fontSize: 16, lineHeight: 1.5 }}>Weeks to migrate. By hand.</p>
-      <div style={{ marginTop: 16, display: 'flex', alignItems: 'baseline', gap: 10 }}>
-        <span className="font-mono" style={{ fontSize: 34, fontWeight: 600, color: ACCENT.amber }}>
-          {n.toLocaleString()}+
-        </span>
-        <span style={{ color: 'var(--ink-2)', fontSize: 13 }}>pipelines · counted by hand</span>
-      </div>
-    </SideCard>
-  )
-}
-
-function ScoreRow({ label, show }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '6px 0',
-        borderBottom: '1px solid rgba(15,98,254,0.08)',
-        opacity: show ? 1 : 0.18,
-        transition: 'opacity 0.4s ease',
-      }}
+    <ConstellationText
+      accent={ACCENT.amber}
+      eyebrow="The Problem"
+      headline={[{ text: 'Thousands of aging' }, { br: true }, { text: 'Informatica pipelines.' }]}
+      caption="Weeks to migrate. By hand."
+      align={align}
+      style={style}
     >
-      <span style={{ fontSize: 13, color: 'var(--ink-1)' }}>{label}</span>
-      <span className="font-mono" style={{ fontSize: 12, color: show ? ACCENT.green : 'var(--ink-2)' }}>
-        {show ? '✓ StreamSets' : '· · ·'}
-      </span>
-    </div>
+      <Metric value={`${n.toLocaleString()}+`} label="pipelines · counted by hand" color={ACCENT.amber} align={align} />
+    </ConstellationText>
   )
 }
 
-function DecideCard({ progress }) {
+function DecideText({ mobile, progress }) {
+  const { style, align } = placeFor('decide', mobile)
   const rows = [
     ['Connector parity', 0.33],
     ['Runtime fit', 0.37],
@@ -157,99 +91,158 @@ function DecideCard({ progress }) {
     ['Lineage & governance', 0.45],
   ]
   return (
-    <SideCard side="right" accent={ACCENT.violet} eyebrow="DECISION AGENT" heading="Which platform?">
-      <p style={{ color: 'var(--ink-1)', fontSize: 15, lineHeight: 1.5, marginBottom: 12 }}>
-        An AI agent scores StreamSets vs DataStage — and recommends, explainably.
-      </p>
-      <div>
+    <ConstellationText
+      accent={ACCENT.violet}
+      eyebrow="Decision Agent"
+      headline={[{ text: 'Which platform?' }]}
+      caption="An AI agent scores StreamSets vs DataStage — and recommends, explainably."
+      align={align}
+      style={style}
+    >
+      <div style={{ marginTop: 16 }}>
         {rows.map(([label, at]) => (
-          <ScoreRow key={label} label={label} show={progress >= at} />
+          <ScoreRow key={label} label={label} lit={progress >= at} />
         ))}
+        <div className="font-mono text-halo" style={{ marginTop: 12, fontSize: 14, color: ACCENT.blue }}>
+          → watsonx.data StreamSets
+        </div>
       </div>
-      <p className="font-mono" style={{ marginTop: 12, fontSize: 14, color: ACCENT.blue }}>
-        → watsonx.data StreamSets
-      </p>
-    </SideCard>
+    </ConstellationText>
   )
 }
 
-function MigrateCard() {
+function MigrateText({ mobile }) {
+  const { style, align } = placeFor('migrate', mobile)
   return (
-    <SideCard side="right" vpos="top" accent={ACCENT.blue} eyebrow="MIGRATION AGENT" heading="Translate the logic. Generate the code.">
-      <p style={{ color: 'var(--ink-1)', fontSize: 15, lineHeight: 1.5 }}>
-        Informatica StreamSets → watsonx.data Integration.
-      </p>
-      <div
-        className="font-mono"
-        style={{ marginTop: 14, background: 'rgba(15,98,254,0.05)', border: '1px solid rgba(15,98,254,0.12)', borderRadius: 10, padding: '12px 14px', fontSize: 12.5, lineHeight: 1.7, color: 'var(--ink-1)' }}
-      >
-        <div style={{ color: 'var(--ink-2)' }}># informatica mapping</div>
-        <div>EXP → JNR → LKP → FIL</div>
-        <div style={{ color: ACCENT.green, marginTop: 6 }}># watsonx.data streamsets</div>
-        <div style={{ color: 'var(--ink-0)' }}>Source → Transform → Join → Mask → Target</div>
+    <ConstellationText
+      accent={ACCENT.blue}
+      eyebrow="Migration Agent"
+      headline={[{ text: 'Translate the logic.' }, { br: true }, { text: 'Generate the code.' }]}
+      caption="Informatica StreamSets → watsonx.data Integration."
+      align={align}
+      style={style}
+    >
+      <div className="font-mono text-halo" style={{ marginTop: 16, fontSize: 13.5, lineHeight: 1.9 }}>
+        <div style={{ color: 'var(--ink-2)' }}>EXP → JNR → LKP → FIL</div>
+        <div style={{ color: ACCENT.green }}>Source → Transform → Join → Mask → Target</div>
       </div>
-    </SideCard>
+    </ConstellationText>
   )
 }
 
-function EndCard({ progress }) {
-  const replay = useStore((s) => s.replay)
-  const mobile = useIsMobile()
-  const reveal = progress >= 0.9
-  const weeks = 6 - countUp(progress, 0.78, 0.96, 6) // 6 weeks -> 0
+function ModernText({ mobile, progress }) {
+  const { style, align } = placeFor('modern', mobile)
+  const weeks = 6 - countUp(progress, 0.78, 0.96, 6)
   return (
-    <CenterStage>
-      <motion.div
-        {...fade}
-        className="card"
-        style={{ width: 'min(640px, 90vw)', padding: mobile ? '24px 22px' : '34px 38px', textAlign: 'center', pointerEvents: 'auto' }}
-      >
-      <Eyebrow color={ACCENT.green}>MODERNIZED</Eyebrow>
-      <h2 style={{ fontSize: 'clamp(22px,3.2vw,34px)', fontWeight: 600, lineHeight: 1.1, margin: '16px 0 6px', letterSpacing: '-0.01em' }}>
-        Reborn on IBM watsonx.data Integration
-      </h2>
-      <p style={{ color: 'var(--ink-1)', fontSize: 17, marginBottom: 4 }}>
-        Weeks to minutes.
-      </p>
-      <p className="font-mono" style={{ color: ACCENT.green, fontSize: 13, marginBottom: 22 }}>
+    <ConstellationText
+      accent={ACCENT.green}
+      eyebrow="Modernized"
+      headline={[{ text: 'Reborn on IBM watsonx.data' }, { br: true }, { text: 'Integration' }]}
+      caption="Weeks to minutes."
+      align={align}
+      style={style}
+    >
+      <div className="font-mono text-halo" style={{ marginTop: 12, fontSize: 14, color: ACCENT.green }}>
         ~{Math.max(weeks, 0)} weeks → minutes
-      </p>
+      </div>
+    </ConstellationText>
+  )
+}
 
-      <div style={{ display: 'flex', gap: 22, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-        <div className="qr-box">
-          <img
-            src={`${import.meta.env.BASE_URL}qr.png`}
-            alt="Scan to open the experience"
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-          />
-        </div>
-        <div style={{ textAlign: 'left' }}>
-          <p className="grad-text" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.01em' }}>decide. migrate. modernize.</p>
-          <p style={{ color: 'var(--ink-2)', fontSize: 13, margin: '6px 0 14px' }}>Scan to explore the project.</p>
-          {reveal && (
-            <button className="ctl-btn" onClick={replay}>
-              ↻ Replay
+function Metric({ value, label, color, align }) {
+  return (
+    <div style={{ marginTop: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, justifyContent: align === 'center' ? 'center' : 'flex-start' }}>
+        <span className="font-mono text-halo" style={{ fontSize: 'clamp(28px,4vw,38px)', fontWeight: 600, color }}>
+          {value}
+        </span>
+      </div>
+      <div className="text-halo" style={{ fontSize: 13, color: 'var(--ink-2)', marginTop: 2 }}>{label}</div>
+    </div>
+  )
+}
+
+function ScoreRow({ label, lit }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '7px 0',
+        borderBottom: '1px solid rgba(15,98,254,0.1)',
+        opacity: lit ? 1 : 0.32,
+        transition: 'opacity 0.5s ease',
+      }}
+    >
+      <span className="text-halo" style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13.5, color: 'var(--ink-1)' }}>
+        <motion.span
+          animate={{ scale: lit ? [0.6, 1.3, 1] : 1 }}
+          transition={{ duration: 0.4 }}
+          style={{ width: 9, height: 9, borderRadius: '50%', display: 'inline-block', background: lit ? ACCENT.green : 'transparent', border: `1.5px solid ${lit ? ACCENT.green : 'rgba(11,18,32,0.3)'}` }}
+        />
+        {label}
+      </span>
+      <span className="font-mono text-halo" style={{ fontSize: 12, color: lit ? ACCENT.green : 'var(--ink-2)' }}>
+        {lit ? '✓ StreamSets' : '· · ·'}
+      </span>
+    </div>
+  )
+}
+
+// The ONE solid surface — the scannable QR end tile.
+function EndTile({ mobile, show }) {
+  const backToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.6 }}
+          style={{
+            position: 'fixed',
+            bottom: mobile ? '7vh' : '12vh',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 20,
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            pointerEvents: 'auto',
+            zIndex: 55,
+          }}
+        >
+          <div className="qr-box">
+            <img src={`${import.meta.env.BASE_URL}qr.png`} alt="Scan to open the experience" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <p className="grad-text" style={{ fontSize: 23, fontWeight: 700, letterSpacing: '-0.01em' }}>decide. migrate. modernize.</p>
+            <p className="text-halo" style={{ color: 'var(--ink-2)', fontSize: 13, margin: '6px 0 12px' }}>Scan to explore the project.</p>
+            <button className="font-mono soft-pulse" onClick={backToTop} style={{ background: 'none', border: 'none', cursor: 'pointer', color: ACCENT.blue, fontSize: 12, letterSpacing: '0.12em', padding: 0 }}>
+              ↑ BACK TO THE SOURCE
             </button>
-          )}
-        </div>
-        </div>
-      </motion.div>
-    </CenterStage>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
 function BrandLockup() {
   return (
-    <div style={{ position: 'fixed', left: 'clamp(18px,3vw,32px)', top: 22, display: 'flex', alignItems: 'center', gap: 10, pointerEvents: 'none' }}>
+    <div style={{ position: 'fixed', left: 'clamp(18px,3vw,32px)', top: 22, display: 'flex', alignItems: 'center', gap: 10, pointerEvents: 'none', zIndex: 60 }}>
       <span className="font-mono" style={{ fontWeight: 700, fontSize: 15, color: ACCENT.blue }}>IBM</span>
-      <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>watsonx · Data &amp; AI Modernization</span>
+      <span className="text-halo" style={{ fontSize: 13, color: 'var(--ink-2)' }}>watsonx · Data &amp; AI Modernization</span>
     </div>
   )
 }
 
 function ProgressBar({ progress }) {
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(15,98,254,0.08)', zIndex: 60 }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(15,98,254,0.08)', zIndex: 70 }}>
       <div
         style={{
           height: '100%',
@@ -264,47 +257,35 @@ function ProgressBar({ progress }) {
   )
 }
 
-function Controls() {
-  const progress = useStore((s) => s.progress)
-  const playing = useStore((s) => s.playing)
-  const goToAct = useStore((s) => s.goToAct)
-  const nextAct = useStore((s) => s.nextAct)
-  const prevAct = useStore((s) => s.prevAct)
-  const togglePlay = useStore((s) => s.togglePlay)
-  const idx = actIndexFor(progress)
-  const colors = [ACCENT.amber, ACCENT.amber, ACCENT.violet, ACCENT.blue, ACCENT.green]
-
+function ScrollCue({ show }) {
   return (
-    <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 14, zIndex: 60, pointerEvents: 'auto' }}>
-      <button className="ctl-btn" onClick={prevAct}>← Prev</button>
-      <button className="ctl-btn" onClick={togglePlay} style={{ minWidth: 84 }}>
-        {progress >= 1 ? '↻ Replay' : playing ? '❚❚ Pause' : '▶ Play'}
-      </button>
-      <div style={{ display: 'flex', gap: 11, padding: '0 6px' }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <button
-            key={i}
-            className={`dot ${idx === i ? 'active' : ''}`}
-            style={{ color: colors[i] }}
-            onClick={() => goToAct(i)}
-            aria-label={`Beat ${i + 1}`}
-          />
-        ))}
-      </div>
-      <button className="ctl-btn" onClick={nextAct}>Next →</button>
-    </div>
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="cue-bob"
+          style={{ position: 'fixed', bottom: 30, left: '50%', zIndex: 60, textAlign: 'center', pointerEvents: 'none' }}
+        >
+          <div className="font-mono text-halo" style={{ fontSize: 11, letterSpacing: '0.22em', color: 'var(--ink-2)', marginBottom: 6 }}>SCROLL</div>
+          <div className="text-halo" style={{ fontSize: 18, color: ACCENT.blue, lineHeight: 1 }}>↓</div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
 export default function Overlay() {
   const progress = useStore((s) => s.progress)
-  const started = useStore((s) => s.started)
+  const mobile = useIsMobile()
 
-  const showHero = progress < 0.075
-  const showProblem = progress >= 0.09 && progress < 0.275
-  const showDecide = progress >= 0.295 && progress < 0.495
-  const showMigrate = progress >= 0.515 && progress < 0.735
-  const showEnd = progress >= 0.765
+  const showOpen = progress < 0.075
+  const showProblem = progress >= 0.085 && progress < 0.275
+  const showDecide = progress >= 0.285 && progress < 0.495
+  const showMigrate = progress >= 0.505 && progress < 0.735
+  const showModern = progress >= 0.745
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, pointerEvents: 'none' }}>
@@ -312,14 +293,16 @@ export default function Overlay() {
       <BrandLockup />
 
       <AnimatePresence>
-        {showHero && <HeroCard key="hero" />}
-        {showProblem && <ProblemCard key="problem" progress={progress} />}
-        {showDecide && <DecideCard key="decide" progress={progress} />}
-        {showMigrate && <MigrateCard key="migrate" />}
-        {showEnd && <EndCard key="end" progress={progress} />}
+        {showOpen && <OpenText key="open" mobile={mobile} />}
+        {showProblem && <ProblemText key="problem" mobile={mobile} progress={progress} />}
+        {showDecide && <DecideText key="decide" mobile={mobile} progress={progress} />}
+        {showMigrate && <MigrateText key="migrate" mobile={mobile} />}
+        {showModern && <ModernText key="modern" mobile={mobile} progress={progress} />}
       </AnimatePresence>
 
-      {started && <Controls />}
+      <EndTile mobile={mobile} show={progress >= 0.9} />
+      <ConstellationRail />
+      <ScrollCue show={progress < 0.05} />
     </div>
   )
 }
