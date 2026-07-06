@@ -685,3 +685,23 @@ body.is-light .ov-mono {
 .recap-lockup {
   margin-top: 28px;
 }
+
+@media (max-width: 640px) {
+  .ov {
+    bottom: 7vh;
+  }
+  .ov-s0 {
+    bottom: 5vh;
+  }
+  .ov-h1 {
+    font-size: clamp(22px, 6vw, 30px);
+    line-height: 1.12;
+  }
+  .ov-s0 .ov-body {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .ov-body {
+    font-size: 14px;
+  }
+}

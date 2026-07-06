@@ -41,7 +41,8 @@ export default function ScrollStage() {
       const lut = buildLUT(path)
       const L = lut.L
       const pt = (f) => (isMobile ? sampleLUT(lut, f) : path.getPointAtLength(clamp01(f) * L))
-      const ANCHOR = isMobile ? 38 : 50 // vertical screen anchor for the traveler
+      const ANCHOR = isMobile ? 30 : 50 // vertical screen anchor for the traveler
+      const TRAV_SCALE = isMobile ? 0.78 : 1
 
       // draw-on reveal setup
       if (litPath) {
@@ -149,7 +150,7 @@ export default function ScrollStage() {
           const p2 = pt(Math.min(1, f + 0.004))
           rot = Math.max(-16, Math.min(16, (Math.atan2(p2.y - p.y, p2.x - p.x) * 180) / Math.PI))
         }
-        gsap.set(traveler, { x: p.x, y: p.y, rotation: rot, xPercent: 0, yPercent: 0, transformOrigin: '50% 50%' })
+        gsap.set(traveler, { x: p.x, y: p.y, rotation: rot, scale: TRAV_SCALE, xPercent: 0, yPercent: 0, transformOrigin: '50% 50%' })
 
         // camera: follow the traveler (kept in the upper third on phones so the
         // bottom-anchored text stays clear), then pull back for recap (S7)
