@@ -39,6 +39,7 @@ export default function CameraRig() {
   const tLook = useRef(new THREE.Vector3())
 
   useFrame((_, delta) => {
+    if (useStore.getState().inDeepDive) return // occluded by the deep-dive — freeze
     const { damp } = useStore.getState()
     damp(delta)
     const progress = useStore.getState().progress

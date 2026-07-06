@@ -73,6 +73,7 @@ export default function River() {
   const scratch = useMemo(() => new THREE.Color(), [])
 
   useFrame((_, delta) => {
+    if (useStore.getState().inDeepDive) return // occluded by the deep-dive — freeze
     const p = useStore.getState().progress
     const dt = Math.min(delta, 0.05)
     const speed = flowSpeedAt(p)

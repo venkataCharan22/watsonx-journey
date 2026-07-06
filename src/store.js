@@ -37,8 +37,12 @@ const REDUCED = typeof window !== 'undefined' && window.matchMedia?.('(prefers-r
 export const useStore = create((set, get) => ({
   progress: 0, // smoothed value the scene renders
   target: 0, // progress implied by current scroll
+  inDeepDive: false, // true once the deep-dive cover occludes the canvas
 
   setScroll: (frac) => set({ target: scrollToProgress(frac) }),
+  setInDeepDive: (v) => {
+    if (get().inDeepDive !== v) set({ inDeepDive: v })
+  },
 
   // Damped follow each frame — the journey glides with scroll (parallax feel).
   // Frame-rate independent. Stiffer on touch (fling can overshoot), near-instant

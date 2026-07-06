@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Scene from './components/Scene'
 import Overlay from './components/Overlay'
+import DeepDive from './components/DeepDive'
 import { useStore, SCROLL_SCREENS } from './store'
 import { CSS_GRADIENT, ACCENT } from './lib/gradient'
 
@@ -51,29 +52,50 @@ function LoadingScreen({ onComplete }) {
 export default function App() {
   const [loaded, setLoaded] = useState(false)
   const [showScene, setShowScene] = useState(false)
+  const cineRef = useRef(null) // fixed 3D layer — faded out by scroll as the deep-dive enters
+  const spacerRef = useRef(null) // measures the cinematic scroll range
+  const loadedRef = useRef(false)
+
+  useEffect(() => {
+    loadedRef.current = loaded
+  }, [loaded])
 
   useEffect(() => {
     const t = setTimeout(() => setShowScene(true), 150)
     return () => clearTimeout(t)
   }, [])
 
-  // Drive the journey from scroll position.
+  // Drive the cinematic from scroll — but only within the spacer's range, so the
+  // deep-dive content below doesn't distort the 0→1 progress. Then fade the 3D
+  // layer out as the deep-dive scrolls in.
   useEffect(() => {
-    const setScroll = useStore.getState().setScroll
-    // Cache the scroll range — reading scrollHeight forces layout, so we only
-    // recompute it on resize/orientation change, never on every scroll event.
-    let max = 1
+    const { setScroll, setInDeepDive } = useStore.getState()
+    let spacerH = Math.max(1, SCROLL_SCREENS * window.innerHeight)
     const recompute = () => {
-      max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
-      setScroll(window.scrollY / max)
+      spacerH = Math.max(1, spacerRef.current?.offsetHeight || SCROLL_SCREENS * window.innerHeight)
+      apply()
     }
-    // rAF-throttle scroll so we update progress at most once per frame.
+    const apply = () => {
+      const y = window.scrollY
+      setScroll(Math.min(1, y / spacerH))
+      // hand off from cinematic to content near the end of the spacer
+      const vh = window.innerHeight
+      const fadeStart = spacerH - vh * 0.6
+      const fadeEnd = spacerH + vh * 0.1
+      const op = 1 - Math.min(1, Math.max(0, (y - fadeStart) / (fadeEnd - fadeStart || 1)))
+      if (cineRef.current && loadedRef.current) {
+        cineRef.current.style.opacity = String(op)
+        cineRef.current.style.pointerEvents = op < 0.04 ? 'none' : ''
+      }
+      // freeze the occluded canvas so the deep-dive scrolls at 60fps
+      setInDeepDive(y > spacerH - vh * 0.5)
+    }
     let ticking = false
     const onScroll = () => {
       if (ticking) return
       ticking = true
       requestAnimationFrame(() => {
-        setScroll(window.scrollY / max)
+        apply()
         ticking = false
       })
     }
@@ -93,16 +115,21 @@ export default function App() {
     <>
       <AnimatePresence>{!loaded && <LoadingScreen onComplete={() => setLoaded(true)} />}</AnimatePresence>
 
-      {/* Fixed cinematic layer */}
+      {/* Fixed cinematic layer (scroll fades its opacity via cineRef) */}
       {showScene && (
-        <div style={{ position: 'fixed', inset: 0, opacity: loaded ? 1 : 0, transition: 'opacity 0.9s ease', zIndex: 1 }}>
-          <Scene />
-          <Overlay />
+        <div ref={cineRef} style={{ position: 'fixed', inset: 0, zIndex: 1 }}>
+          <div style={{ position: 'absolute', inset: 0, opacity: loaded ? 1 : 0, transition: 'opacity 0.9s ease' }}>
+            <Scene />
+            <Overlay />
+          </div>
         </div>
       )}
 
-      {/* Tall invisible spacer that creates the scroll range driving the journey */}
-      <div aria-hidden style={{ height: `${SCROLL_SCREENS * 100}svh`, pointerEvents: 'none' }} />
+      {/* Tall invisible spacer that creates the cinematic scroll range */}
+      <div ref={spacerRef} aria-hidden style={{ height: `${SCROLL_SCREENS * 100}svh`, pointerEvents: 'none' }} />
+
+      {/* Real content that scrolls in after the cinematic */}
+      <DeepDive />
 
       {/* thin gradient hairline at the very top — ties back to the IBM poster */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: CSS_GRADIENT, zIndex: 70, pointerEvents: 'none' }} />

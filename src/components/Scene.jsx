@@ -16,7 +16,7 @@ import { gradientColorAt } from '../lib/gradient'
 function BeatLight() {
   const ref = useRef()
   useFrame(() => {
-    if (!ref.current) return
+    if (!ref.current || useStore.getState().inDeepDive) return
     gradientColorAt(useStore.getState().progress, ref.current.color)
   })
   return <pointLight ref={ref} position={[2, 3, 10]} intensity={1.6} distance={40} decay={0.6} />

@@ -56,7 +56,7 @@ const OpenText = memo(function OpenText({ mobile }) {
       accent={ACCENT.blue}
       eyebrow="IBM watsonx · Data & AI Modernization"
       headline={[{ text: 'The journey of a ' }, { br: true }, { text: 'legacy pipeline', grad: true }]}
-      caption="Two AI agents that move Informatica pipelines onto IBM watsonx.data Integration."
+      caption="Two AI agents move Informatica pipelines onto IBM watsonx.data Integration — first decide the right target, then execute the migration."
       align={align}
       style={style}
     >
@@ -74,16 +74,16 @@ const ProblemText = memo(function ProblemText({ mobile, count }) {
       accent={ACCENT.amber}
       eyebrow="The Problem"
       headline={[{ text: 'Thousands of aging' }, { br: true }, { text: 'Informatica pipelines.' }]}
-      caption="Weeks to migrate. By hand."
+      caption="No public IBM converter to watsonx.data — so it's done by hand: weeks per estate, a judgment call every time."
       align={align}
       style={style}
     >
-      <Metric value={`${count.toLocaleString()}+`} label="pipelines · counted by hand" color={ACCENT.amber} align={align} />
+      <Metric value={`${count.toLocaleString()}+`} label="pipelines to assess & migrate — by hand" color={ACCENT.amber} align={align} />
     </ConstellationText>
   )
 })
 
-const DECIDE_ROWS = ['Connector parity', 'Runtime fit', 'Cost to operate', 'Lineage & governance']
+const DECIDE_FACTORS = ['Transform load', 'Real-time vs batch', 'Tech stack', 'Orchestration', 'Parallelism', 'Schema & SQL']
 
 const DecideText = memo(function DecideText({ mobile, litMask }) {
   const { style, align } = placeFor('decide', mobile)
@@ -91,17 +91,20 @@ const DecideText = memo(function DecideText({ mobile, litMask }) {
     <ConstellationText
       accent={ACCENT.violet}
       eyebrow="Decision Agent"
-      headline={[{ text: 'Which platform?' }]}
-      caption="An AI agent scores StreamSets vs DataStage — and recommends, explainably."
+      headline={[{ text: 'Which platform', grad: false }, { text: ' — and why?' }]}
+      caption="Scores a PowerCenter or IICS export on 6 weighted factors, then recommends StreamSets, DataStage, or Manual Review — explainably."
       align={align}
       style={style}
     >
-      <div style={{ marginTop: 16 }}>
-        {DECIDE_ROWS.map((label, i) => (
+      <div style={{ marginTop: 14 }}>
+        {DECIDE_FACTORS.map((label, i) => (
           <ScoreRow key={label} label={label} lit={(litMask & (1 << i)) !== 0} />
         ))}
         <div className="font-mono text-halo" style={{ marginTop: 12, fontSize: 14, color: ACCENT.blue }}>
-          → watsonx.data StreamSets
+          → StreamSets · High confidence
+        </div>
+        <div className="font-mono text-halo" style={{ marginTop: 4, fontSize: 11.5, color: 'var(--ink-2)' }}>
+          max SS 84 · DS 86
         </div>
       </div>
     </ConstellationText>
@@ -114,14 +117,14 @@ const MigrateText = memo(function MigrateText({ mobile }) {
     <ConstellationText
       accent={ACCENT.blue}
       eyebrow="Migration Agent"
-      headline={[{ text: 'Translate the logic.' }, { br: true }, { text: 'Generate the code.' }]}
-      caption="Informatica StreamSets → watsonx.data Integration."
+      headline={[{ text: 'Parse. Translate.' }, { br: true }, { text: 'Generate runnable code.' }]}
+      caption="Translates the mapping into a self-contained Python script that builds the live watsonx.data flow — you review it, then run it."
       align={align}
       style={style}
     >
-      <div className="font-mono text-halo" style={{ marginTop: 16, fontSize: 13.5, lineHeight: 1.9 }}>
-        <div style={{ color: 'var(--ink-2)' }}>EXP → JNR → LKP → FIL</div>
-        <div style={{ color: ACCENT.green }}>Source → Transform → Join → Mask → Target</div>
+      <div className="font-mono text-halo" style={{ marginTop: 16, fontSize: 12.5, lineHeight: 1.95 }}>
+        <div style={{ color: 'var(--ink-2)' }}>parse → plan → translate → generate → build · review · run</div>
+        <div style={{ color: ACCENT.green }}>rules first · AI (Bob) fallback · human-reviewed</div>
       </div>
     </ConstellationText>
   )
@@ -133,13 +136,16 @@ const ModernText = memo(function ModernText({ mobile, weeks }) {
     <ConstellationText
       accent={ACCENT.green}
       eyebrow="Modernized"
-      headline={[{ text: 'Reborn on IBM watsonx.data' }, { br: true }, { text: 'Integration' }]}
-      caption="Weeks to minutes."
+      headline={[{ text: 'Running on IBM watsonx.data' }, { br: true }, { text: 'Integration' }]}
+      caption="A defensible decision and a reviewable, portable migration — weeks of hand-work compressed to minutes."
       align={align}
       style={style}
     >
       <div className="font-mono text-halo" style={{ marginTop: 12, fontSize: 14, color: ACCENT.green }}>
         ~{Math.max(weeks, 0)} weeks → minutes
+      </div>
+      <div className="font-mono text-halo" style={{ marginTop: 4, fontSize: 11.5, color: ACCENT.green }}>
+        proven end-to-end on a live wxDI project
       </div>
     </ConstellationText>
   )
@@ -175,12 +181,12 @@ function ScoreRow({ label, lit }) {
         <motion.span
           animate={{ scale: lit ? [0.6, 1.3, 1] : 1 }}
           transition={{ duration: 0.4 }}
-          style={{ width: 9, height: 9, borderRadius: '50%', display: 'inline-block', background: lit ? ACCENT.green : 'transparent', border: `1.5px solid ${lit ? ACCENT.green : 'rgba(11,18,32,0.3)'}` }}
+          style={{ width: 9, height: 9, borderRadius: '50%', display: 'inline-block', background: lit ? ACCENT.violet : 'transparent', border: `1.5px solid ${lit ? ACCENT.violet : 'rgba(11,18,32,0.3)'}` }}
         />
         {label}
       </span>
-      <span className="font-mono text-halo" style={{ fontSize: 12, color: lit ? ACCENT.green : 'var(--ink-2)' }}>
-        {lit ? '✓ StreamSets' : '· · ·'}
+      <span className="font-mono text-halo" style={{ fontSize: 12, color: lit ? ACCENT.violet : 'var(--ink-2)' }}>
+        {lit ? '✓ scored' : '· · ·'}
       </span>
     </div>
   )
@@ -276,6 +282,7 @@ function ScrollCue({ show }) {
 
 export default function Overlay() {
   const progress = useStore((s) => s.progress)
+  const inDeepDive = useStore((s) => s.inDeepDive)
   const mobile = useIsMobile()
 
   const showOpen = progress < 0.075
@@ -287,8 +294,9 @@ export default function Overlay() {
   // Derived display values — computed here (cheap) so the memoized text blocks
   // only re-render when their shown value actually changes, not every frame.
   const problemCount = countUp(progress, 0.1, 0.2, 3000)
-  const decideMask =
-    (progress >= 0.33 ? 1 : 0) | (progress >= 0.37 ? 2 : 0) | (progress >= 0.41 ? 4 : 0) | (progress >= 0.45 ? 8 : 0)
+  const decideThresholds = [0.32, 0.35, 0.38, 0.41, 0.44, 0.47]
+  let decideMask = 0
+  for (let i = 0; i < 6; i++) if (progress >= decideThresholds[i]) decideMask |= 1 << i
   const modernWeeks = Math.max(0, 6 - countUp(progress, 0.78, 0.96, 6))
 
   return (
@@ -304,7 +312,7 @@ export default function Overlay() {
         {showModern && <ModernText key="modern" mobile={mobile} weeks={modernWeeks} />}
       </AnimatePresence>
 
-      <EndTile mobile={mobile} show={progress >= 0.9} />
+      <EndTile mobile={mobile} show={progress >= 0.9 && !inDeepDive} />
       {!mobile && <ConstellationRail />}
       <ScrollCue show={progress < 0.05} />
     </div>

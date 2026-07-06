@@ -314,6 +314,166 @@ body {
     mask-image: none !important;
     background: radial-gradient(120% 90% at 50% 50%, rgba(255, 255, 255, 0.62) 30%, rgba(255, 255, 255, 0) 76%) !important;
   }
+  /* deep-dive cards: drop blur (jank), use a flat white fill */
+  .card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.93);
+  }
+}
+
+/* ---------- Deep dive ---------- */
+.dd-section {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 5vw, 24px);
+}
+.dd-rhythm > * + * {
+  margin-top: 18px;
+}
+.dd-hairline {
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #ff832b, #8a3ffc 38%, #0f62fe 62%, #1faa6b);
+  opacity: 0.45;
+}
+.dd-h {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 300;
+  font-size: clamp(22px, 6vw, 30px);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--ink-0);
+  margin: 0;
+}
+.dd-body {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--ink-1);
+  margin: 10px 0 0;
+}
+.card-spine {
+  border-left: 3px solid var(--spine, var(--blue));
+  padding: 20px 20px 20px 18px;
+}
+/* entrance — transform/opacity only, toggled by IntersectionObserver */
+.dd-in {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.dd-in.in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dd-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+.dd-mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+}
+.dd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--pill, rgba(15, 98, 254, 0.25));
+  color: var(--pill, var(--blue));
+  background: color-mix(in srgb, var(--pill, #0f62fe) 7%, transparent);
+}
+.dd-pill.dashed {
+  border-style: dashed;
+}
+.dd-pill.dim {
+  opacity: 0.5;
+}
+/* diverging factor bar */
+.factor-row {
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(15, 98, 254, 0.1);
+}
+.factor-name {
+  font-size: 14px;
+  color: var(--ink-1);
+  margin-bottom: 7px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.factor-track {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(11, 18, 32, 0.06);
+  overflow: hidden;
+}
+.factor-mid {
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: rgba(11, 18, 32, 0.18);
+}
+.factor-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-radius: 4px;
+  transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.factor-fill.ss {
+  right: 50%;
+  background: linear-gradient(90deg, transparent, var(--cyan));
+}
+.factor-fill.ds {
+  left: 50%;
+  background: linear-gradient(90deg, var(--violet), transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .factor-fill {
+    transition: none;
+  }
+}
+/* accordion */
+.acc-head {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: none;
+  border: none;
+  padding: 12px 0;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink-0);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 15px;
+}
+.ghost-link {
+  color: var(--ink-1);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(15, 98, 254, 0.3);
+  padding-bottom: 1px;
+  font-size: 14px;
+}
+.ghost-link:hover {
+  color: var(--blue);
 }
 
 /* scroll cue bob */
