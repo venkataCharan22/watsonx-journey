@@ -1,12 +1,14 @@
 import { create } from 'zustand'
+import { isMobile } from './lib/device'
 
 // Normalized start points (progress 0..1) for each beat.
 // open · problem · decide · migrate · modern
 export const ACT_POINTS = [0.0, 0.08, 0.28, 0.5, 0.74]
 
 // Total scroll length, in viewport-heights. More screens = slower, more
-// luxurious scrub.
-export const SCROLL_SCREENS = 7.6
+// luxurious scrub. Slightly shorter on phones — a thumb-fling covers less
+// story than a wheel, so the same film needs fewer swipes.
+export const SCROLL_SCREENS = isMobile ? 6.8 : 7.6
 
 // Piecewise scroll→progress map. Decoupling "how far you scroll" from "how far
 // the story moves" lets some beats linger. The decide beat gets a near-stall

@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import Beat from '../Beat'
 import { useStore } from '../../store'
 import { smoothstep, lerp } from '../../lib/scene-params'
+import { TEXT_FONT } from '../../lib/fonts'
 
 const CYAN = new THREE.Color('#0f62fe')
 const GREEN = new THREE.Color('#1faa6b')
@@ -129,6 +130,7 @@ export default function FlowGraph() {
             </mesh>
           </group>
           <Text
+            font={TEXT_FONT}
             position={[0, 1.5, 0]}
             fontSize={0.34}
             color="#0f62fe"
@@ -173,8 +175,9 @@ export default function FlowGraph() {
               />
             </RoundedBox>
             <Text
+              font={TEXT_FONT}
               position={[0, 0, 0.13]}
-              fontSize={0.28}
+              fontSize={0.26}
               color="#0b1220"
               anchorX="center"
               anchorY="middle"

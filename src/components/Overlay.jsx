@@ -1,5 +1,6 @@
-import { useState, useEffect, memo } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useShallow } from 'zustand/react/shallow'
 import { useStore } from '../store'
 import { CSS_GRADIENT, ACCENT, hexAt } from '../lib/gradient'
 import ConstellationText from './ConstellationText'
@@ -243,17 +244,33 @@ function BrandLockup() {
   )
 }
 
-function ProgressBar({ progress }) {
+// Progress bar paints via a transient store subscription and direct style
+// writes — progress changes every animation frame while the scrub damps, and
+// routing that through React re-rendered the whole overlay each frame.
+function ProgressBar() {
+  const fillRef = useRef(null)
+  useEffect(() => {
+    const paint = (p) => {
+      const el = fillRef.current
+      if (!el) return
+      el.style.width = `${p * 100}%`
+      el.style.boxShadow = `0 0 10px ${hexAt(p)}66`
+    }
+    paint(useStore.getState().progress)
+    return useStore.subscribe((s, prev) => {
+      if (s.progress !== prev.progress) paint(s.progress)
+    })
+  }, [])
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(15,98,254,0.08)', zIndex: 70 }}>
       <div
+        ref={fillRef}
         style={{
           height: '100%',
-          width: `${progress * 100}%`,
+          width: 0,
           background: CSS_GRADIENT,
           backgroundSize: '100vw 100%',
           backgroundRepeat: 'no-repeat',
-          boxShadow: `0 0 10px ${hexAt(progress)}66`,
         }}
       />
     </div>
@@ -280,41 +297,50 @@ function ScrollCue({ show }) {
   )
 }
 
-export default function Overlay() {
-  const progress = useStore((s) => s.progress)
-  const inDeepDive = useStore((s) => s.inDeepDive)
-  const mobile = useIsMobile()
+const decideThresholds = [0.32, 0.35, 0.38, 0.41, 0.44, 0.47]
 
-  const showOpen = progress < 0.075
-  const showProblem = progress >= 0.085 && progress < 0.275
-  const showDecide = progress >= 0.285 && progress < 0.495
-  const showMigrate = progress >= 0.505 && progress < 0.735
-  const showModern = progress >= 0.745
-
-  // Derived display values — computed here (cheap) so the memoized text blocks
-  // only re-render when their shown value actually changes, not every frame.
-  const problemCount = countUp(progress, 0.1, 0.2, 3000)
-  const decideThresholds = [0.32, 0.35, 0.38, 0.41, 0.44, 0.47]
+// Everything the overlay renders, derived as DISCRETE values. Raw progress
+// changes every animation frame while the scrub damps — selecting it directly
+// re-rendered the whole overlay per frame. These values only change when a
+// beat boundary or displayed number actually flips (shallow-compared).
+function selectView(s) {
+  const p = s.progress
   let decideMask = 0
-  for (let i = 0; i < 6; i++) if (progress >= decideThresholds[i]) decideMask |= 1 << i
-  const modernWeeks = Math.max(0, 6 - countUp(progress, 0.78, 0.96, 6))
+  for (let i = 0; i < 6; i++) if (p >= decideThresholds[i]) decideMask |= 1 << i
+  return {
+    showOpen: p < 0.075,
+    showProblem: p >= 0.085 && p < 0.275,
+    showDecide: p >= 0.285 && p < 0.495,
+    showMigrate: p >= 0.505 && p < 0.735,
+    showModern: p >= 0.745,
+    problemCount: countUp(p, 0.1, 0.2, 3000),
+    decideMask,
+    modernWeeks: Math.max(0, 6 - countUp(p, 0.78, 0.96, 6)),
+    showEnd: p >= 0.9 && !s.inDeepDive,
+    showCue: p < 0.05,
+  }
+}
+
+export default function Overlay() {
+  const view = useStore(useShallow(selectView))
+  const mobile = useIsMobile()
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, pointerEvents: 'none' }}>
-      <ProgressBar progress={progress} />
+      <ProgressBar />
       <BrandLockup />
 
       <AnimatePresence>
-        {showOpen && <OpenText key="open" mobile={mobile} />}
-        {showProblem && <ProblemText key="problem" mobile={mobile} count={problemCount} />}
-        {showDecide && <DecideText key="decide" mobile={mobile} litMask={decideMask} />}
-        {showMigrate && <MigrateText key="migrate" mobile={mobile} />}
-        {showModern && <ModernText key="modern" mobile={mobile} weeks={modernWeeks} />}
+        {view.showOpen && <OpenText key="open" mobile={mobile} />}
+        {view.showProblem && <ProblemText key="problem" mobile={mobile} count={view.problemCount} />}
+        {view.showDecide && <DecideText key="decide" mobile={mobile} litMask={view.decideMask} />}
+        {view.showMigrate && <MigrateText key="migrate" mobile={mobile} />}
+        {view.showModern && <ModernText key="modern" mobile={mobile} weeks={view.modernWeeks} />}
       </AnimatePresence>
 
-      <EndTile mobile={mobile} show={progress >= 0.9 && !inDeepDive} />
+      <EndTile mobile={mobile} show={view.showEnd} />
       {!mobile && <ConstellationRail />}
-      <ScrollCue show={progress < 0.05} />
+      <ScrollCue show={view.showCue} />
     </div>
   )
 }

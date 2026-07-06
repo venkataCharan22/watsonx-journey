@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import Beat from '../Beat'
+import { TEXT_FONT } from '../../lib/fonts'
 
 const VIOLET = '#8a3ffc'
 const CYAN = '#3a8bff'
@@ -81,7 +82,7 @@ export default function DecisionScene() {
             <icosahedronGeometry args={[1.35, 0]} />
             <meshBasicMaterial color="#b794ff" wireframe transparent opacity={0.16} toneMapped={false} />
           </mesh>
-          <Text position={[0, 1.85, 0]} fontSize={0.34} color={VIOLET} anchorX="center" material-toneMapped={false}>
+          <Text font={TEXT_FONT} position={[0, 1.85, 0]} fontSize={0.34} color={VIOLET} anchorX="center" material-toneMapped={false}>
             DECISION AGENT
           </Text>
         </group>
@@ -114,12 +115,12 @@ function Gate({ x, color, label, recommended }) {
         <circleGeometry args={[1.02, 40]} />
         <meshBasicMaterial color={color} transparent opacity={recommended ? 0.1 : 0.05} toneMapped={false} />
       </mesh>
-      <Text position={[0, -1.5, 0]} fontSize={0.46} color={recommended ? '#0f62fe' : INK} anchorX="center" material-toneMapped={false}>
+      <Text font={TEXT_FONT} position={[0, -1.5, 0]} fontSize={0.46} color={recommended ? '#0f62fe' : INK} anchorX="center" material-toneMapped={false}>
         {label}
       </Text>
       {recommended && (
-        <Text position={[0, 1.35, 0]} fontSize={0.34} color="#1faa6b" anchorX="center" material-toneMapped={false}>
-          ✓ recommended
+        <Text font={TEXT_FONT} position={[0, 1.35, 0]} fontSize={0.3} color="#1faa6b" anchorX="center" material-toneMapped={false}>
+          RECOMMENDED
         </Text>
       )}
     </group>

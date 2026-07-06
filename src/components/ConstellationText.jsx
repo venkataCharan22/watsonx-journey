@@ -25,19 +25,33 @@ function twinkles(text, i) {
   return text.charCodeAt(i % text.length) % 11 === (i % 11)
 }
 
+// Glyph spans are grouped per WORD (inline-block) — bare per-glyph spans let
+// the browser break lines mid-word on narrow screens ("watsonx.da / ta").
 function Glyphs({ text, grad, twinkleColor, simple }) {
   const v = simple ? glyphSimple : glyphVar
-  return [...text].map((ch, i) => {
-    const tw = !simple && !grad && ch !== ' ' && twinkles(text, i)
+  let gi = 0
+  return text.split(/(\s+)/).map((tok, ti) => {
+    if (!tok) return null
+    const start = gi
+    gi += tok.length
+    if (/^\s+$/.test(tok)) return <span key={`s${ti}`}>{tok}</span>
     return (
-      <motion.span
-        key={i}
-        variants={v}
-        className={`${grad ? 'grad-text' : ''} ${tw ? 'twinkle' : ''}`}
-        style={{ display: 'inline-block', whiteSpace: 'pre', ...(tw ? { '--twinkle': twinkleColor } : null) }}
-      >
-        {ch === ' ' ? ' ' : ch}
-      </motion.span>
+      <span key={`w${ti}`} style={{ display: 'inline-block', whiteSpace: 'pre' }}>
+        {[...tok].map((ch, j) => {
+          const i = start + j
+          const tw = !simple && !grad && twinkles(text, i)
+          return (
+            <motion.span
+              key={j}
+              variants={v}
+              className={`${grad ? 'grad-text' : ''} ${tw ? 'twinkle' : ''}`}
+              style={{ display: 'inline-block', ...(tw ? { '--twinkle': twinkleColor } : null) }}
+            >
+              {ch}
+            </motion.span>
+          )
+        })}
+      </span>
     )
   })
 }

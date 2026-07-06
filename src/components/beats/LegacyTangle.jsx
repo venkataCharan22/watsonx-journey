@@ -4,15 +4,23 @@ import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import Beat from '../Beat'
 import { BEATS } from '../../lib/scene-params'
+import { isMobile } from '../../lib/device'
+import { TEXT_FONT } from '../../lib/fonts'
 
 const AMBER = '#ff832b'
 const AMBER_DK = '#e06f1a'
+
+// Fewer, coarser tubes on phones — the tangle reads the same at phone size,
+// for roughly half the triangles.
+const STRANDS = isMobile ? 18 : 30
+const TUBE_SEGS = isMobile ? 36 : 48
+const RADIAL_SEGS = isMobile ? 5 : 6
 
 function useTangle() {
   return useMemo(() => {
     const rng = mulberry32(20240617)
     const strands = []
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < STRANDS; i++) {
       const pts = []
       const cx = (rng() - 0.5) * 7
       const cy = (rng() - 0.5) * 7 + 3
@@ -28,7 +36,7 @@ function useTangle() {
         )
       }
       const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.6)
-      const geo = new THREE.TubeGeometry(curve, 48, 0.05 + rng() * 0.05, 6, false)
+      const geo = new THREE.TubeGeometry(curve, TUBE_SEGS, 0.05 + rng() * 0.05, RADIAL_SEGS, false)
       strands.push({ geo, hot: rng() > 0.6 })
     }
     return strands
@@ -75,6 +83,7 @@ export default function LegacyTangle() {
 function FloatingLabel({ text, position, sub = false }) {
   return (
     <Text
+      font={TEXT_FONT}
       position={position}
       fontSize={sub ? 0.42 : 0.6}
       color={sub ? '#9a6b3a' : '#7a4a18'}

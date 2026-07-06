@@ -13,7 +13,7 @@ import {
   channelBrightnessAt,
 } from '../lib/scene-params'
 
-const COUNT = isMobile ? 2400 : 4200
+const COUNT = isMobile ? 2000 : 4200
 const SPAN = RIVER_TOP - RIVER_BOTTOM
 
 // Soft round sprite so particles read as luminous droplets, not hard squares.
