@@ -54,9 +54,21 @@ export default function App() {
 
   return (
     <>
+      <h1 className="sr-only">Migrate from Informatica PowerCenter to IBM watsonx.data integration — Analyze. Decide. Migrate.</h1>
       <AnimatePresence>{!loaded && <LoadingScreen onComplete={() => setLoaded(true)} />}</AnimatePresence>
       <ScrollStage />
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: CSS_GRADIENT, zIndex: 70, pointerEvents: 'none' }} />
+      {/* chapter rail + live progress */}
+      <div className="chapter-rail" data-chapter="0">
+        <div className="chapter-fill" />
+        <div className="chapter-ticks">
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <span key={i} className="tick" style={{ color: TICK_COLORS[i] }} />
+          ))}
+        </div>
+        <div className="chapter-counter font-mono" aria-live="polite">01 / 08 · Landing</div>
+      </div>
     </>
   )
 }
+
+const TICK_COLORS = ['#ff832b', '#ffae57', '#8a3ffc', '#a56eff', '#0f62fe', '#3a8bff', '#1faa6b', '#42be65']

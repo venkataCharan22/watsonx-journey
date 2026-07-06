@@ -20,7 +20,18 @@ function Block({ cls, pos = 'center', children }) {
 }
 
 const Eyebrow = ({ children }) => <div className="ov-eyebrow">{children}</div>
-const H = ({ children }) => <h2 className="ov-h">{children}</h2>
+
+// split a headline into word spans that assemble on section entry (.is-live)
+function splitWords(text) {
+  return String(text)
+    .split(' ')
+    .map((w, i) => (
+      <span className="word" key={i} style={{ '--i': i }}>
+        <span className="inner">{w}&nbsp;</span>
+      </span>
+    ))
+}
+const H = ({ children }) => <h2 className="ov-h">{splitWords(children)}</h2>
 const Body = ({ children }) => <p className="ov-body">{children}</p>
 const Mono = ({ children, c }) => (
   <p className="ov-mono" style={c ? { color: c } : undefined}>

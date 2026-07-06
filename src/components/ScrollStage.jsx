@@ -2,7 +2,9 @@ import { useRef, useLayoutEffect } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { isMobile, isCoarse, reducedMotion } from '../lib/device'
-import { buildLUT, sampleLUT, pathEase, clamp01 } from '../lib/pathmap'
+import { SECTION_RANGES, buildLUT, sampleLUT, pathEase, clamp01 } from '../lib/pathmap'
+
+const SECTION_NAMES = ['Landing', 'PowerCenter', 'Decision', 'Routing', 'StreamSets', 'Deploy', 'Value', 'Recap']
 import { bgColorAt, bgCenterAt, inkAt } from '../lib/bgcolor'
 import StageScene from './StageScene'
 import StageOverlays from './StageOverlays'
@@ -35,6 +37,9 @@ export default function ScrollStage() {
       const q = gsap.utils.selector(stage)
       const path = stage.querySelector('#masterPath')
       const litPath = stage.querySelector('#litPath')
+      const travComet = stage.querySelector('#travComet')
+      const pathFlow = stage.querySelector('#pathFlow')
+      const conduit = stage.querySelector('.conduit')
       const traveler = travelerRef.current
       const camera = cameraRef.current
 
@@ -43,6 +48,7 @@ export default function ScrollStage() {
       const pt = (f) => (isMobile ? sampleLUT(lut, f) : path.getPointAtLength(clamp01(f) * L))
       const ANCHOR = isMobile ? 30 : 50 // vertical screen anchor for the traveler
       const TRAV_SCALE = isMobile ? 0.78 : 1
+      const FLOW_LEN = L * 0.05
 
       // draw-on reveal setup
       if (litPath) {
@@ -67,9 +73,28 @@ export default function ScrollStage() {
       gsap.set(q('.s2-label'), { opacity: 0.18 })
       gsap.set(q('.fork-datastage'), { opacity: 0.6 })
 
-      // S0 landing — headline clears
+      // S0 landing — headline clears + ignition wake
       To('.ov-s0', { opacity: 0, y: -30 }, 0.03, 0.09)
       To('.s0-env', { opacity: 0 }, 0.03, 0.1)
+      if (!reducedMotion) {
+        mtl.fromTo(q('.wake-ring'), { scale: 0.3, opacity: 0.9, transformOrigin: '50% 50%' }, { scale: 2.8, opacity: 0, duration: 0.05, ease: 'none' }, 0.012)
+      }
+
+      // emotive doc face: neutral → worry → focus → relief → joy (scrubbed)
+      const face = (d, a, b) => {
+        if (!reducedMotion) mtl.to(q('.doc-mouth'), { attr: { d }, duration: b - a, ease: 'none' }, a)
+      }
+      const brow = (l, r, a, b) => {
+        if (reducedMotion) return
+        mtl.to(q('.doc-brow-l'), { rotation: l, transformOrigin: '50% 50%', duration: b - a, ease: 'none' }, a)
+        mtl.to(q('.doc-brow-r'), { rotation: r, transformOrigin: '50% 50%', duration: b - a, ease: 'none' }, a)
+      }
+      face('M-1.4 4.3 Q0 3.5 1.4 4.3', 0.1, 0.16) // worry (frown) — legacy
+      brow(-11, 11, 0.1, 0.16)
+      face('M-1 3.9 Q0 3.9 1 3.9', 0.24, 0.3) // focus (flat) — decision
+      brow(0, 0, 0.24, 0.3)
+      face('M-1.4 3.7 Q0 4.15 1.4 3.7', 0.47, 0.5) // relief — fork chosen
+      face('M-1.6 3.3 Q0 4.7 1.6 3.3', 0.8, 0.85) // joy — cloud lights
 
       // S1 powercenter
       To('.s1-env', { opacity: 1 }, 0.07, 0.11)
@@ -112,10 +137,19 @@ export default function ScrollStage() {
       To('.ov-s4', { opacity: 0 }, 0.7, 0.73)
       To('.s4-env', { opacity: 0 }, 0.71, 0.74)
 
-      // S5 deploy — cloud illuminate
+      // S5 deploy — cloud illuminate + arrival burst
       To('.s5-env', { opacity: 1 }, 0.71, 0.76)
       To('.cloud-glow', { opacity: 1 }, 0.8, 0.86)
-      mtl.fromTo(q('.cloud-ring'), { opacity: 0.8, scale: 0.2, transformOrigin: '50% 50%' }, { opacity: 0, scale: 1.5, duration: 0.05, ease: 'none' }, 0.82)
+      if (reducedMotion) {
+        gsap.set(q('.cloud-ring'), { opacity: 0 })
+      } else {
+        mtl.fromTo(
+          q('.cloud-ring'),
+          { opacity: 0.85, scale: 0.15, transformOrigin: '50% 50%' },
+          { opacity: 0, scale: 1.8, duration: 0.06, ease: 'none', stagger: 0.015 },
+          0.8,
+        )
+      }
       To('.ov-s5', { opacity: 1, y: 0 }, 0.74, 0.78)
       To('.ov-s5', { opacity: 0 }, 0.86, 0.9)
 
@@ -125,10 +159,7 @@ export default function ScrollStage() {
 
       // S7 recap
       To('.ov-s7', { opacity: 1, y: 0 }, 0.955, 0.99)
-
-      // reveal the lit path progressively
-      const drawObj = { v: 0 }
-      mtl.to(drawObj, { v: 1, duration: 1, ease: 'none', onUpdate: () => { if (litPath) litPath.style.strokeDashoffset = L * (1 - drawObj.v) } }, 0)
+      // (the lit path is drawn from the traveler's own position in sample())
 
       // ---- per-frame: camera follow + traveler ride + rings + bg ----
       const ringOuter = stage.querySelector('.ring-outer')
@@ -136,6 +167,8 @@ export default function ScrollStage() {
       const ringInner = stage.querySelector('.ring-inner')
       let ang = 0
       let av = 0
+      let flowT = 0
+      let spd = 0
 
       const gpRef = { v: 0 }
       const velRef = { v: 0 }
@@ -150,7 +183,36 @@ export default function ScrollStage() {
           const p2 = pt(Math.min(1, f + 0.004))
           rot = Math.max(-16, Math.min(16, (Math.atan2(p2.y - p.y, p2.x - p.x) * 180) / Math.PI))
         }
-        gsap.set(traveler, { x: p.x, y: p.y, rotation: rot, scale: TRAV_SCALE, xPercent: 0, yPercent: 0, transformOrigin: '50% 50%' })
+        // smoothed scroll speed → the doc leans / stretches into its travel
+        const targetSpd = reducedMotion ? 0 : Math.min(1, Math.abs(velRef.v) * 0.005)
+        spd = lerp(spd, targetSpd, 0.12)
+        gsap.set(traveler, {
+          x: p.x,
+          y: p.y,
+          rotation: rot,
+          scaleX: TRAV_SCALE,
+          scaleY: TRAV_SCALE * (1 + spd * 0.07),
+          skewX: isCoarse ? 0 : Math.max(-4, Math.min(4, velRef.v * 0.003)),
+          xPercent: 0,
+          yPercent: 0,
+          transformOrigin: '50% 50%',
+        })
+
+        // draw the lit path exactly up to the doc
+        const a = f * L
+        if (litPath) litPath.style.strokeDashoffset = L - a
+
+        // energized conduit: comet tail behind the doc + a current shimmer
+        if (conduit) {
+          const active = gp > 0.03 && gp < 0.9
+          conduit.style.opacity = active ? '1' : '0'
+          if (active) {
+            const tail = Math.min(isMobile ? 15 : 26, 6 + Math.abs(velRef.v) * 0.018)
+            if (travComet) travComet.style.strokeDasharray = `0 ${Math.max(0, a - tail).toFixed(1)} ${tail.toFixed(1)} ${L}`
+            flowT = (flowT + 0.45 + Math.abs(velRef.v) * 0.004) % Math.max(a, 1)
+            if (pathFlow) pathFlow.style.strokeDasharray = `0 ${flowT.toFixed(1)} ${FLOW_LEN.toFixed(1)} ${L}`
+          }
+        }
 
         // camera: follow the traveler (kept in the upper third on phones so the
         // bottom-anchored text stays clear), then pull back for recap (S7)
@@ -194,6 +256,21 @@ export default function ScrollStage() {
       }
       setBg(0)
 
+      // ---- chapter rail + kinetic headlines: fire only on section change ----
+      const railEl = document.querySelector('.chapter-rail')
+      const counterEl = document.querySelector('.chapter-counter')
+      let lastIdx = -1
+      const onSection = (gp) => {
+        let idx = 0
+        for (let i = 0; i < SECTION_RANGES.length; i++) if (gp >= SECTION_RANGES[i][0]) idx = i
+        if (idx === lastIdx) return
+        lastIdx = idx
+        if (railEl) railEl.dataset.chapter = idx
+        if (counterEl) counterEl.textContent = `0${idx + 1} / 08 · ${SECTION_NAMES[idx]}`
+        for (let i = 0; i < 8; i++) stage.querySelector(`.ov-s${i}`)?.classList.toggle('is-live', i === idx)
+      }
+      onSection(0)
+
       // ---- one ScrollTrigger drives everything ----
       ScrollTrigger.config({ ignoreMobileResize: true })
       ScrollTrigger.create({
@@ -207,6 +284,8 @@ export default function ScrollStage() {
           velRef.v = self.getVelocity()
           mtl.progress(self.progress)
           setBg(self.progress)
+          root.style.setProperty('--scroll-p', self.progress.toFixed(4))
+          onSection(self.progress)
         },
       })
 

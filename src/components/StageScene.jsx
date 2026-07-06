@@ -146,7 +146,9 @@ export default function StageScene({ travelerRef }) {
       {/* ---------- S5 cloud ---------- */}
       <g className="s5-env" opacity="0">
         <circle className="cloud-glow" cx="50" cy="1175" r="40" fill="url(#cloudHalo)" opacity="0" />
-        <circle className="cloud-ring" cx="50" cy="1175" r="30" fill="none" stroke="#0f62fe" strokeWidth="0.6" opacity="0" />
+        <circle className="cloud-ring" cx="50" cy="1175" r="26" fill="none" stroke="#0f62fe" strokeWidth="0.6" opacity="0" />
+        <circle className="cloud-ring" cx="50" cy="1175" r="26" fill="none" stroke="#3a8bff" strokeWidth="0.5" opacity="0" />
+        <circle className="cloud-ring" cx="50" cy="1175" r="26" fill="none" stroke="#1faa6b" strokeWidth="0.5" opacity="0" />
         <path
           d="M28 1182 a11 11 0 0 1 3 -21 a14 14 0 0 1 26 -3 a10 10 0 0 1 15 9 a8 8 0 0 1 -2 16 z"
           fill="#ffffff"
@@ -160,6 +162,14 @@ export default function StageScene({ travelerRef }) {
       <path id="masterPath" d={D} fill="none" stroke="none" />
       <path className="path-base" d={D} fill="none" stroke="#5a77a0" strokeWidth="1" strokeLinecap="round" opacity="0.28" />
       <path id="litPath" d={D} fill="none" stroke="url(#pathGrad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      {/* energized conduit: current shimmer + comet tail behind the doc */}
+      <g className="conduit">
+        <path id="pathFlow" d={D} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.1" strokeLinecap="round" />
+        <path id="travComet" d={D} fill="none" stroke="url(#pathGrad)" strokeWidth="3" strokeLinecap="round" />
+      </g>
+
+      {/* wake ring at the origin */}
+      <circle className="wake-ring" cx="50" cy="44" r="5" fill="none" stroke="#3a8bff" strokeWidth="0.6" opacity="0" />
 
       {/* ---------- the traveler: XML document ---------- */}
       <g ref={travelerRef} className="traveler">
@@ -186,11 +196,16 @@ function Doc({ className }) {
     <g className={className}>
       <rect x="-4.5" y="-5.5" width="9" height="11" rx="1.4" fill="#ffffff" stroke="#0f62fe" strokeWidth="0.55" />
       <path d="M2 -5.5 L4.5 -5.5 L4.5 -3 Z" fill="#cfe0ff" />
-      <line x1="-2.6" y1="-2.4" x2="1.4" y2="-2.4" stroke="#9fb3d4" strokeWidth="0.5" />
-      <line x1="-2.6" y1="-0.7" x2="2.4" y2="-0.7" stroke="#9fb3d4" strokeWidth="0.5" />
-      <text x="0" y="3.6" className="svg-mini" fill="#0f62fe" textAnchor="middle" fontWeight="600">{'</>'}</text>
-      <circle cx="-1.4" cy="1.6" r="0.5" fill="#0b1220" />
-      <circle cx="1.4" cy="1.6" r="0.5" fill="#0b1220" />
+      <text x="-1.9" y="-2.6" className="svg-tiny" fill="#0f62fe" fontWeight="600">{'</>'}</text>
+      <line x1="-2.6" y1="-0.4" x2="2.4" y2="-0.4" stroke="#9fb3d4" strokeWidth="0.45" />
+      {/* face — expression is driven by the scrubbed timeline */}
+      <g className="doc-face">
+        <line className="doc-brow-l" x1="-2.2" y1="1.1" x2="-0.7" y2="1.1" stroke="#0b1220" strokeWidth="0.4" strokeLinecap="round" />
+        <line className="doc-brow-r" x1="0.7" y1="1.1" x2="2.2" y2="1.1" stroke="#0b1220" strokeWidth="0.4" strokeLinecap="round" />
+        <circle cx="-1.4" cy="2.2" r="0.5" fill="#0b1220" />
+        <circle cx="1.4" cy="2.2" r="0.5" fill="#0b1220" />
+        <path className="doc-mouth" d="M-1.4 3.9 Q0 3.9 1.4 3.9" fill="none" stroke="#0b1220" strokeWidth="0.4" strokeLinecap="round" />
+      </g>
     </g>
   )
 }
