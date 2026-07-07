@@ -160,12 +160,12 @@ export default function StageScene({ travelerRef }) {
 
       {/* ---------- master path (measure + base + lit) ---------- */}
       <path id="masterPath" d={D} fill="none" stroke="none" />
-      <path className="path-base" d={D} fill="none" stroke="#5a77a0" strokeWidth="1" strokeLinecap="round" opacity="0.28" />
-      <path id="litPath" d={D} fill="none" stroke="url(#pathGrad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path className="path-base" d={D} fill="none" stroke="#5a77a0" strokeWidth="1.4" strokeLinecap="round" opacity="0.28" />
+      <path id="litPath" d={D} fill="none" stroke="url(#pathGrad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       {/* energized conduit: current shimmer + comet tail behind the doc */}
       <g className="conduit">
-        <path id="pathFlow" d={D} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.1" strokeLinecap="round" />
-        <path id="travComet" d={D} fill="none" stroke="url(#pathGrad)" strokeWidth="3" strokeLinecap="round" />
+        <path id="pathFlow" d={D} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" strokeLinecap="round" />
+        <path id="travComet" d={D} fill="none" stroke="url(#pathGrad)" strokeWidth="3.8" strokeLinecap="round" />
       </g>
 
       {/* wake ring at the origin */}

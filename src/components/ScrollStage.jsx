@@ -47,7 +47,12 @@ export default function ScrollStage() {
       const L = lut.L
       const pt = (f) => (isMobile ? sampleLUT(lut, f) : path.getPointAtLength(clamp01(f) * L))
       const ANCHOR = isMobile ? 30 : 50 // vertical screen anchor for the traveler
-      const TRAV_SCALE = isMobile ? 0.78 : 1
+      // Base zoom-OUT of the whole world so wide elements (the decision ring,
+      // spread labels) fit the cropped viewport and text isn't oversized.
+      const ZOOM = isMobile ? 0.6 : 0.82
+      // Doc scaled up by 1/ZOOM so it stays a constant screen size while the
+      // environment shrinks (the doc is the hero, the world is context).
+      const TRAV_SCALE = (isMobile ? 0.82 : 1) / ZOOM
       const FLOW_LEN = L * 0.05
 
       // draw-on reveal setup
@@ -214,15 +219,15 @@ export default function ScrollStage() {
           }
         }
 
-        // camera: follow the traveler (kept in the upper third on phones so the
-        // bottom-anchored text stays clear), then pull back for recap (S7)
-        let tx = 0, ty = ANCHOR - p.y, sc = 1
+        // camera: follow the traveler at zoom ZOOM (recentred on it), then pull
+        // back for the recap (S7)
+        let tx = 50 - p.x * ZOOM, ty = ANCHOR - p.y * ZOOM, sc = ZOOM
         if (gp > 0.94) {
           const rp = smooth((gp - 0.94) / 0.06)
           const s = 100 / PATH_H
-          tx = lerp(0, 50 - 50 * s, rp)
-          ty = lerp(ANCHOR - p.y, 2, rp)
-          sc = lerp(1, s, rp)
+          tx = lerp(50 - p.x * ZOOM, 50 - 50 * s, rp)
+          ty = lerp(ANCHOR - p.y * ZOOM, 2, rp)
+          sc = lerp(ZOOM, s, rp)
         }
         camera.setAttribute('transform', `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${sc.toFixed(4)})`)
 
