@@ -72,7 +72,7 @@ export default function StageScene({ travelerRef }) {
       </g>
 
       {/* ---------- S2 decision engine: rings + 7 labels ---------- */}
-      <g className="s2-env" opacity="0">
+      <g className="s2-env" opacity="0" transform="translate(50 500) scale(0.58) translate(-50 -500)">
         <circle cx="50" cy="500" r="34" fill="url(#cloudHalo)" opacity="0.5" />
         <g className="ring-outer">
           <circle cx="50" cy="500" r="30" fill="none" stroke="#8a3ffc" strokeWidth="0.6" strokeDasharray="1.5 2.5" opacity="0.8" />

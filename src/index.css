@@ -34,7 +34,9 @@ body,
   width: 100%;
   min-height: 100%;
   overflow-x: hidden;
-  background: var(--bg-0);
+  /* follow the stage colour so any gap below the fixed stage (mobile URL-bar
+     resize) is invisible instead of a white flash */
+  background: var(--stage-bg, #05070f);
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
   color: var(--ink-0);
   -webkit-font-smoothing: antialiased;
@@ -495,7 +497,8 @@ body {
 .stage {
   position: fixed;
   inset: 0;
-  height: 100dvh;
+  height: 100vh;
+  height: 100lvh; /* cover the LARGEST viewport (URL bar hidden) — no gap on scroll */
   z-index: 1;
   overflow: hidden;
   transform: translateZ(0);
