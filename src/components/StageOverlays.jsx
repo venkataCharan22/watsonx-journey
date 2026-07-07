@@ -123,13 +123,16 @@ export default function StageOverlays() {
               <span className="recap-val">{v}</span>
             </div>
           ))}
-          <div className="recap-lockup">
-            <div className="ov-h" style={{ fontSize: 'clamp(20px,5vw,28px)' }}>IBM watsonx.data integration Migration Suite</div>
-            <p className="grad-text" style={{ fontSize: 20, fontWeight: 700, marginTop: 6 }}>Analyze. Decide. Migrate.</p>
-            <div className="qr-box" style={{ margin: '18px auto 0' }}>
+          <div className="recap-lockup" style={{ pointerEvents: 'auto' }}>
+            <div className="ov-h" style={{ fontSize: 'clamp(19px,4.6vw,26px)' }}>IBM watsonx.data integration</div>
+            <div className="qr-box" style={{ margin: '20px auto 0' }}>
               <img src={`${import.meta.env.BASE_URL}qr.png`} alt="Scan to open" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
-            <button className="ov-mono" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--blue)', marginTop: 12 }}>
+            <button
+              className="ov-mono"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--blue)', marginTop: 14, pointerEvents: 'auto' }}
+            >
               ↑ BACK TO THE SOURCE
             </button>
           </div>

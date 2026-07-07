@@ -73,7 +73,7 @@ export default function ScrollStage() {
       gsap.set(q('.ov-s4'), { opacity: 0, x: 20 })
       gsap.set(q('.ov-s6,.ov-s7'), { opacity: 0, y: 20 })
       gsap.set(q('.s1-env,.s2-env,.s3-env,.s4-env,.s5-env'), { opacity: 0 })
-      gsap.set(q('.s1-node-lit,.s4-station-lit,.morph-b,.morph-c,.morph-d,.morph-e,.s2-badge,.fork-check,.fork-ss-glow,.cloud-glow,.cloud-ring'), { opacity: 0 })
+      gsap.set(q('.s1-node-lit,.s4-station-lit,.morph-b,.morph-c,.morph-d,.morph-e,.s2-badge,.fork-check,.fork-ss-glow,.cloud-glow,.cloud-ring,.deploy-badge'), { opacity: 0 })
       gsap.set(q('.morph-a'), { opacity: 1 })
       gsap.set(q('.s2-label'), { opacity: 0.18 })
       gsap.set(q('.fork-datastage'), { opacity: 0.6 })
@@ -137,13 +137,14 @@ export default function ScrollStage() {
         mtl.to(q(states[i - 1]), { opacity: 0, duration: step * 0.6, ease: 'none' }, at)
         mtl.to(q(states[i]), { opacity: 1, duration: step * 0.6, ease: 'none' }, at)
       }
-      q('.s4-station-lit').forEach((n, i) => mtl.to(n, { opacity: 1, duration: 0.02, ease: 'none' }, 0.54 + i * step))
+      // stations light as the doc actually reaches them (arrivals ≈ 0.60→0.78)
+      q('.s4-station-lit').forEach((n, i) => mtl.to(n, { opacity: 1, duration: 0.02, ease: 'none' }, 0.6 + i * 0.045))
       To('.ov-s4', { opacity: 1, x: 0 }, 0.52, 0.56)
-      To('.ov-s4', { opacity: 0 }, 0.7, 0.73)
-      To('.s4-env', { opacity: 0 }, 0.71, 0.74)
+      To('.ov-s4', { opacity: 0 }, 0.79, 0.82)
+      To('.s4-env', { opacity: 0 }, 0.8, 0.84)
 
       // S5 deploy — cloud illuminate + arrival burst
-      To('.s5-env', { opacity: 1 }, 0.71, 0.76)
+      To('.s5-env', { opacity: 1 }, 0.78, 0.82)
       To('.cloud-glow', { opacity: 1 }, 0.8, 0.86)
       if (reducedMotion) {
         gsap.set(q('.cloud-ring'), { opacity: 0 })
@@ -155,6 +156,7 @@ export default function ScrollStage() {
           0.8,
         )
       }
+      To('.deploy-badge', { opacity: 1 }, 0.845, 0.87)
       To('.ov-s5', { opacity: 1, y: 0 }, 0.74, 0.78)
       To('.ov-s5', { opacity: 0 }, 0.86, 0.9)
 
@@ -162,16 +164,29 @@ export default function ScrollStage() {
       To('.ov-s6', { opacity: 1, y: 0 }, 0.87, 0.91)
       To('.ov-s6', { opacity: 0 }, 0.95, 0.965)
 
-      // S7 recap
+      // S7 recap — fade the whole ridden line back so the closing card reads
       To('.ov-s7', { opacity: 1, y: 0 }, 0.955, 0.99)
+      To('#litPath', { opacity: 0.22 }, 0.95, 0.99)
+      To('.path-base', { opacity: 0.05 }, 0.95, 0.99)
       // (the lit path is drawn from the traveler's own position in sample())
 
       // ---- per-frame: camera follow + traveler ride + rings + bg ----
       const ringOuter = stage.querySelector('.ring-outer')
       const ringMid = stage.querySelector('.ring-mid')
       const ringInner = stage.querySelector('.ring-inner')
-      let ang = 0
-      let av = 0
+
+      // S4 stations: fade each in only as the doc nears it (clean production line,
+      // no pile-up with the heading). Precompute each station's arc from its world y.
+      const arcForY = (ty) => {
+        let best = 0, bestd = 1e9
+        for (let i = 0; i <= lut.n; i++) { const d = Math.abs(lut.ys[i] - ty); if (d < bestd) { bestd = d; best = i } }
+        return best / lut.n
+      }
+      const s4Stations = Array.from(stage.querySelectorAll('.s4-env > g')).map((g) => {
+        const m = /translate\(([\d.]+) ([\d.]+)\)/.exec(g.getAttribute('transform') || '')
+        return { g, arc: m ? arcForY(parseFloat(m[2])) : 0 }
+      })
+
       let flowT = 0
       let spd = 0
 
@@ -231,19 +246,20 @@ export default function ScrollStage() {
         }
         camera.setAttribute('transform', `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${sc.toFixed(4)})`)
 
-        // rings (S2) — velocity coupled on desktop, gentle constant on mobile
-        if (ringOuter) {
-          if (isMobile || reducedMotion) {
-            ang += 0.15
-          } else {
-            const target = clamp01((gp - 0.2) / 0.05) * (1 - clamp01((gp - 0.38) / 0.04))
-            av = lerp(av, Math.max(-9, Math.min(9, velRef.v * 0.01)) * target, 0.08)
-            av += target * 0.25 // idle spin while in the hub
-            ang += av
+        // S4 stations: proximity fade so only the station near the doc is visible
+        if (s4Stations.length) {
+          const inS4 = gp > 0.47 && gp < 0.85
+          for (const s of s4Stations) {
+            s.g.style.opacity = inS4 ? clamp01(1 - Math.abs(f - s.arc) / 0.065).toFixed(3) : '0'
           }
-          ringOuter.setAttribute('transform', `rotate(${ang} 50 500)`)
-          if (ringMid) ringMid.setAttribute('transform', `rotate(${-ang * 0.6} 50 500)`)
-          if (ringInner) ringInner.setAttribute('transform', `rotate(${ang * 1.4} 50 500)`)
+        }
+
+        // rings (S2): spin ~1.5 full turns tied to scroll while the doc is pinned
+        if (ringOuter) {
+          const spin = clamp01((gp - 0.22) / (0.4 - 0.22)) * 540
+          ringOuter.setAttribute('transform', `rotate(${spin.toFixed(1)} 50 500)`)
+          if (ringMid) ringMid.setAttribute('transform', `rotate(${(-spin * 0.6).toFixed(1)} 50 500)`)
+          if (ringInner) ringInner.setAttribute('transform', `rotate(${(spin * 1.4).toFixed(1)} 50 500)`)
         }
       }
       gsap.ticker.add(sample)

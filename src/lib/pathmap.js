@@ -27,10 +27,16 @@ export function lp(i, gp) {
   return clamp01((gp - a) / (b - a || 1))
 }
 
-// Maps global progress to a 0..1 arc fraction for the traveler — rides 0→1 over
-// the journey, arriving at the cloud at TRAVELER_END, then holds.
+// Arc fraction of the decision ring centre along the path.
+const RING_ARC = 0.4
+// Maps global progress to a 0..1 arc fraction for the traveler. The doc rises to
+// the decision ring, PINS there through the S2 window (so it stays centred while
+// the ring spins), then resumes to the cloud at TRAVELER_END.
 export function pathEase(gp) {
-  return clamp01(gp / TRAVELER_END)
+  if (gp >= TRAVELER_END) return 1
+  if (gp < 0.24) return (gp / 0.24) * RING_ARC
+  if (gp < 0.4) return RING_ARC // pinned at the ring through S2
+  return RING_ARC + ((gp - 0.4) / (TRAVELER_END - 0.4)) * (1 - RING_ARC)
 }
 
 // Precompute a lookup table of points along the path (cheap sampling on mobile —

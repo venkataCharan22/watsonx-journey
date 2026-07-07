@@ -107,41 +107,30 @@ export default function StageScene({ travelerRef }) {
         })}
       </g>
 
-      {/* ---------- S3 fork ---------- */}
+      {/* ---------- S3 fork: two branches, DataStage left / StreamSets right ----------
+          Labels flank the doc (upper band) so they clear the bottom heading; branches
+          diverge downward past them. */}
       <g className="s3-env" opacity="0">
-        <path className="fork-datastage" d="M44 655 C44 700 26 720 22 780" fill="none" stroke="#8a3ffc" strokeWidth="1.2" opacity="0.6" />
-        <path className="fork-ss-glow" d="M44 655 C44 700 66 720 68 760 C70 800 68 810 68 815" fill="none" stroke="#3a8bff" strokeWidth="3" opacity="0" strokeLinecap="round" />
-        {/* DataStage capsule (dimmed) */}
-        <g transform="translate(20 795)" opacity="0.7">
-          <rect x="-13" y="-7" width="26" height="14" rx="3" fill="none" stroke="#8a3ffc" strokeWidth="0.6" />
+        <path className="fork-datastage" d="M50 540 C46 575 30 590 22 650" fill="none" stroke="#8a3ffc" strokeWidth="1.4" opacity="0.55" strokeLinecap="round" />
+        <path className="fork-ss-glow" d="M50 540 C54 575 70 590 78 650" fill="none" stroke="#3a8bff" strokeWidth="2.4" opacity="0" strokeLinecap="round" />
+        {/* DataStage (left, not chosen) */}
+        <g transform="translate(27 582)" opacity="0.55">
+          <rect x="-13" y="-6" width="26" height="12" rx="3" fill="rgba(11,18,40,0.85)" stroke="#8a3ffc" strokeWidth="0.7" />
           <text x="0" y="1" className="svg-mini" fill="#cbb6ff" textAnchor="middle">IBM DataStage</text>
         </g>
-        {/* StreamSets capsule (chosen) */}
-        <g transform="translate(70 792)">
-          <rect x="-13" y="-8" width="26" height="16" rx="3" fill="rgba(58,139,255,0.1)" stroke="#3a8bff" strokeWidth="0.9" />
-          <text x="0" y="0.5" className="svg-mini" fill="#9fc6ff" textAnchor="middle">StreamSets</text>
-          <g className="fork-check" opacity="0" transform="translate(0 -12)">
-            <circle r="2.6" fill="#1faa6b" />
-            <path d="M-1.2 0 L-0.2 1 L1.3 -1" fill="none" stroke="#fff" strokeWidth="0.6" strokeLinecap="round" />
+        {/* StreamSets (right, chosen) */}
+        <g transform="translate(73 582)">
+          <rect x="-13" y="-6.5" width="26" height="13" rx="3" fill="rgba(20,44,90,0.9)" stroke="#3a8bff" strokeWidth="1" />
+          <text x="0" y="0.6" className="svg-mini" fill="#9fc6ff" textAnchor="middle">StreamSets</text>
+          <g className="fork-check" opacity="0" transform="translate(10 -8)">
+            <circle r="2.8" fill="#1faa6b" />
+            <path d="M-1.3 0 L-0.3 1.1 L1.4 -1.1" fill="none" stroke="#fff" strokeWidth="0.6" strokeLinecap="round" />
           </g>
         </g>
       </g>
 
-      {/* ---------- S4 production line: 5 stations ---------- */}
-      <g className="s4-env" opacity="0">
-        {S4_STATIONS.map((s, i) => (
-          <g key={i} transform={`translate(${s.x} ${s.y})`}>
-            <line x1="-11" y1="-13" x2="-11" y2="6" stroke={LIGHT} strokeWidth="0.4" opacity="0.4" />
-            <line x1="11" y1="-13" x2="11" y2="6" stroke={LIGHT} strokeWidth="0.4" opacity="0.4" />
-            <rect x="-12" y="-19" width="24" height="6" rx="1.4" fill="rgba(58,139,255,0.08)" stroke="#3a8bff" strokeWidth="0.5" opacity="0.55" />
-            <text x="0" y="-14.7" className="svg-mini" fill="#9fc6ff" textAnchor="middle">{s.label}</text>
-            <g className="s4-station-lit" opacity="0">
-              <rect x="-12" y="-19" width="24" height="6" rx="1.4" fill="rgba(31,170,107,0.16)" stroke="#42be65" strokeWidth="0.7" />
-              <circle cx="9.5" cy="-16" r="1" fill="#42be65" />
-            </g>
-          </g>
-        ))}
-      </g>
+      {/* S4 production-line stations are rendered AFTER the traveler (below) so the
+          doc passes BEHIND the station labels. */}
 
       {/* ---------- S5 cloud ---------- */}
       <g className="s5-env" opacity="0">
@@ -155,7 +144,7 @@ export default function StageScene({ travelerRef }) {
           stroke="#0f62fe"
           strokeWidth="0.8"
         />
-        <text x="50" y="1200" className="svg-mini" fill="#0f62fe" textAnchor="middle" fontWeight="600">IBM watsonx.data integration</text>
+        <text x="50" y="1204" className="svg-mini" fill="#0f62fe" textAnchor="middle" fontWeight="600">IBM watsonx.data integration</text>
       </g>
 
       {/* ---------- master path (measure + base + lit) ---------- */}
@@ -180,12 +169,35 @@ export default function StageScene({ travelerRef }) {
         <MorphD />
         <MorphE />
         {/* confidence badge (shows at end of S2) */}
-        <g className="s2-badge" opacity="0" transform="translate(9 -6)">
-          <rect x="-1" y="-3" width="20" height="6" rx="3" fill="#0b1220" opacity="0.9" />
+        <g className="s2-badge" opacity="0" transform="translate(8 -7)">
+          <rect x="-1" y="-3" width="30" height="6" rx="3" fill="#0b1220" opacity="0.92" />
           <circle cx="2" cy="0" r="1.5" fill="#1faa6b" />
           <path d="M1.2 0 L1.9 0.7 L2.9 -0.6" fill="none" stroke="#fff" strokeWidth="0.4" strokeLinecap="round" />
-          <text x="5" y="1" className="svg-mini" fill="#eaf1ff">CONFIDENCE 94%</text>
+          <text x="4.6" y="0.95" className="svg-tiny" fill="#eaf1ff">CONFIDENCE 94%</text>
         </g>
+      </g>
+
+      {/* ---------- S4 production line (in FRONT of the traveler) ----------
+          Each term box is centred on the path point so the doc slides BEHIND it. */}
+      <g className="s4-env" opacity="0">
+        {S4_STATIONS.map((s, i) => (
+          <g key={i} transform={`translate(${s.x} ${s.y})`}>
+            <rect x="-17" y="-5.5" width="34" height="11" rx="2.5" fill="rgba(9,17,38,0.9)" stroke="#3a8bff" strokeWidth="0.8" />
+            <g className="s4-station-lit" opacity="0">
+              <rect x="-17" y="-5.5" width="34" height="11" rx="2.5" fill="rgba(31,170,107,0.24)" stroke="#42be65" strokeWidth="1" />
+              <circle cx="13.5" cy="0" r="1.3" fill="#42be65" />
+            </g>
+            <text x="0" y="1.6" className="svg-chip" fill="#d6e6ff" textAnchor="middle" fontWeight="700" letterSpacing="0.12">{s.label}</text>
+          </g>
+        ))}
+      </g>
+
+      {/* deployed stamp — rendered in FRONT of the doc as it lands in the cloud */}
+      <g className="deploy-badge" opacity="0" transform="translate(50 1176)">
+        <rect x="-14" y="-4.5" width="28" height="9" rx="4.5" fill="#0f62fe" />
+        <circle cx="-9" cy="0" r="2.1" fill="#fff" />
+        <path d="M-10.1 0 L-9.1 1.1 L-7.6 -1.1" fill="none" stroke="#0f62fe" strokeWidth="0.7" strokeLinecap="round" strokeLinejoin="round" />
+        <text x="-4.6" y="1.5" className="svg-mini" fill="#fff" fontWeight="700">DEPLOYED</text>
       </g>
     </g>
   )
@@ -265,10 +277,10 @@ function MorphE() {
 }
 
 const S1_NODES = [
-  [33, 235, 'Workflow'],
-  [28, 268, 'Mapping'],
-  [34, 300, 'Session'],
-  [42, 332, 'Source'],
+  [33, 232, 'Workflow'],
+  [28, 266, 'Sessions'],
+  [34, 300, 'Mappings'],
+  [42, 334, 'Mapping objects'],
 ]
 const S2_LABELS = [
   'Transformation',
